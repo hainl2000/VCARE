@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id                      Int       @id @default(autoincrement())
+  phone_number            String
+  email                   String
+  password                String
+  full_name               String?
+  avatar                  String?
+  gender                  Boolean? //true-male, false-female
+  dob                     DateTime?
+  identity_number         String?   @unique
+  social_insurance_number String?   @unique
+  external_code           String    @unique
+  security_key            String?
+  created_at              DateTime  @default(now())
+  change_history          Json      @default("{}") @db.JsonB
+}
+
+model doctors {
+  id                          Int           @id @default(autoincrement())
+  hospital_id                 Int
+  practicing_certificate_code String?
+  code                        String?
+  full_name                   String?
+  email                       String
+  phone_number                String
+  password                    String
+  avatar                      String?
+  gender                      Boolean?
+  role_id                     Int?
+  created_by                  Int?
+  created_at                  DateTime      @default(now())
+  updated_at                  DateTime      @updatedAt
+  deleted_at                  DateTime?
+  change_history              Json          @default("{}") @db.JsonB
+  hospital                    hospitals     @relation(fields: [hospital_id], references: [id])
+  role                        doctor_roles? @relation(fields: [role_id], references: [id])
+}
+
+model admins {
+  id        Int         @id @default(autoincrement())
+  email     String
+  password  String
+  hospitals hospitals[]
+}
+
+model doctor_roles {
+  id      Int       @id @default(autoincrement())
+  name    String    @unique
+  doctors doctors[]
+}
+
+model hospitals {
+  id            Int       @id @default(autoincrement())
+  image         String?
+  information   String?
+  created_by_id Int
+  created_at    DateTime  @default(now())
+  doctors       doctors[]
+  created_by    admins    @relation(fields: [created_by_id], references: [id])
+}
