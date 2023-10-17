@@ -12,19 +12,22 @@ datasource db {
 
 model users {
   id                      Int       @id @default(autoincrement())
-  phone_number            String
-  email                   String
+  phone                   String    @unique
+  email                   String    @unique
   password                String
   full_name               String?
   avatar                  String?
   gender                  Boolean? //true-male, false-female
   dob                     DateTime?
+  deleted                 Boolean   @default(false)
   identity_number         String?   @unique
   social_insurance_number String?   @unique
-  external_code           String    @unique
+  external_code           String    @unique @default(dbgenerated("nanoid()")) @db.VarChar()
   security_key            String?
   created_at              DateTime  @default(now())
-  change_history          Json      @default("{}") @db.JsonB
+  deleted_at              DateTime?
+  updated_at              DateTime  @updatedAt
+  change_history          Json      @default("[]") @db.JsonB
 }
 
 model doctors {
@@ -33,26 +36,32 @@ model doctors {
   practicing_certificate_code String?
   code                        String?
   full_name                   String?
-  email                       String
-  phone_number                String
+  email                       String        @unique
+  phone                       String        @unique
   password                    String
   avatar                      String?
   gender                      Boolean?
   role_id                     Int?
   created_by                  Int?
+  deleted                     Boolean       @default(false)
   created_at                  DateTime      @default(now())
   updated_at                  DateTime      @updatedAt
   deleted_at                  DateTime?
-  change_history              Json          @default("{}") @db.JsonB
+  external_code               String        @unique @default(dbgenerated("nanoid()")) @db.VarChar()
+  change_history              Json          @default("[]") @db.JsonB
+  security_key                String?
   hospital                    hospitals     @relation(fields: [hospital_id], references: [id])
   role                        doctor_roles? @relation(fields: [role_id], references: [id])
 }
 
 model admins {
-  id        Int         @id @default(autoincrement())
-  email     String
-  password  String
-  hospitals hospitals[]
+  id           Int         @id @default(autoincrement())
+  email        String      @unique
+  password     String
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+  security_key String?
+  hospitals    hospitals[]
 }
 
 model doctor_roles {
