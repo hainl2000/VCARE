@@ -13,3 +13,8 @@ export type role = keyof typeof roles;
 export type account = users | admins | doctors;
 
 export type accountWithRole = account & { role: role };
+
+export enum ENV {
+  local = 'local',
+  dev = 'dev',
+}
