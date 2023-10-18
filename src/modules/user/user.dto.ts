@@ -2,7 +2,7 @@ import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import {
   IsDefined,
   IsEmail,
-  IsPhoneNumber,
+  Matches,
   IsString,
   MinLength,
 } from 'class-validator';
@@ -23,7 +23,9 @@ export class CreateUserDto {
     required: true,
   })
   @IsDefined()
-  @IsPhoneNumber()
+  @Matches(/(0[3|5|7|8|9])+([0-9]{8})\b/g, {
+    message: 'phone must be a valid number',
+  })
   phone: string;
 
   @ApiProperty({
