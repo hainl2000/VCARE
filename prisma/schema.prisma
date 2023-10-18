@@ -33,8 +33,8 @@ model users {
 model doctors {
   id                          Int           @id @default(autoincrement())
   hospital_id                 Int
-  practicing_certificate_code String?
-  code                        String?
+  practicing_certificate_code String?       @unique
+  code                        String?       @unique
   full_name                   String?
   email                       String        @unique
   phone                       String        @unique
