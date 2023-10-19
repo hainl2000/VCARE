@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -12,9 +14,19 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthResponse, LoginDto, RegisterDto } from './auth.dto';
+import {
+  AuthResponse,
+  ForgotPasswordQuery,
+  ForgotPasswordResponse,
+  LoginDto,
+  RefreshQuery,
+  RegisterDto,
+  ResetPasswordDto,
+  ResetPasswordResponse,
+} from './auth.dto';
 import { AuthService } from './auth.service';
 
 @ApiTags('auth')
@@ -71,5 +83,48 @@ export class AuthController {
   @Post('admin')
   loginAdmin(@Body() data: LoginDto) {
     return this.authService.loginAdmin(data);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ description: 'Người dùng quên mật khẩu' })
+  @ApiOkResponse({
+    type: ForgotPasswordResponse,
+    description: 'Yêu cầu thành công',
+  })
+  @ApiQuery({
+    name: 'username',
+    required: false,
+    type: String,
+  })
+  @Get('forgot')
+  forgotPassword(@Query() { username }: ForgotPasswordQuery) {
+    return this.authService.forgotPassword(username);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ description: 'Người dùng  mật khẩu' })
+  @ApiOkResponse({
+    type: ResetPasswordResponse,
+    description: 'Tạo mật khẩu mới thành công',
+  })
+  @Post('reset-password')
+  resetPassword(@Body() data: ResetPasswordDto) {
+    return this.authService.resetPassword(data);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ description: 'Refresh token' })
+  @ApiOkResponse({
+    type: AuthResponse,
+    description: 'Yêu cầu thành công',
+  })
+  @ApiQuery({
+    name: 'token',
+    required: false,
+    type: String,
+  })
+  @Get('refresh')
+  refreshAccount(@Query() { token }: RefreshQuery) {
+    return this.authService.refreshAccount(token);
   }
 }

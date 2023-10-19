@@ -6,7 +6,8 @@ import {
 import { PrismaService } from 'src/shared/prisma.service';
 import { CreateUserDto } from './user.dto';
 import { generateHashPass } from 'src/utils/_security';
-import { Prisma } from '@prisma/client';
+import { Prisma, users } from '@prisma/client';
+import { checkFieldUpdateUser, userField } from 'src/constants/type';
 
 @Injectable()
 export class UserService {
@@ -48,12 +49,30 @@ export class UserService {
   }
 
   async update(
-    id: number,
+    target: users | number,
     data: Prisma.XOR<Prisma.usersUpdateInput, Prisma.usersUncheckedUpdateInput>,
   ) {
+    let user: users;
+    if (typeof target === 'number') {
+      user = await this.prisma.users.findUnique({ where: { id: target } });
+    } else user = target;
+    const log = Object.keys(data).reduce(
+      (pre: Record<string, any>, key: userField) => {
+        if (checkFieldUpdateUser.includes(key) && user[key] !== data[key]) {
+          pre[key] = `${user[key]} -> ${data[key]}`;
+        }
+        return pre;
+      },
+      {},
+    );
+    if (Object.keys(log).length > 0) {
+      data['change_history'] = (user.change_history as Prisma.JsonArray).push(
+        log,
+      );
+    }
     try {
       return await this.prisma.users.update({
-        where: { id },
+        where: { id: user.id },
         data,
       });
     } catch (error) {
