@@ -5,11 +5,11 @@ import { DoctorModule } from 'src/modules/doctor/doctor.module';
 import { UserModule } from 'src/modules/user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { TokenStrategy } from './strategy';
+import { HospitalModule } from 'src/modules/hospital/hospital.module';
 
 @Module({
-  imports: [JwtModule, UserModule, DoctorModule, AdminModule],
+  imports: [JwtModule, UserModule, DoctorModule, AdminModule, HospitalModule],
   controllers: [AuthController],
-  providers: [AuthService, TokenStrategy],
+  providers: [AuthService],
 })
 export class AuthModule {}

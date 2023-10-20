@@ -22,6 +22,7 @@ import {
   ResetPasswordDto,
 } from './auth.dto';
 import { SendMailService } from 'src/shared/mailer.service';
+import { HospitalService } from 'src/modules/hospital/hospital.service';
 @Injectable()
 export class AuthService implements OnApplicationBootstrap {
   private tokenExpire: string;
@@ -32,6 +33,7 @@ export class AuthService implements OnApplicationBootstrap {
     private readonly configService: ConfigService,
     private readonly doctorSerivce: DoctorService,
     private readonly adminService: AdminService,
+    private readonly hospitalService: HospitalService,
     private readonly sendMailService: SendMailService,
   ) {}
 
@@ -58,14 +60,10 @@ export class AuthService implements OnApplicationBootstrap {
 
       await this.userService.update(user.id, { security_key: key });
 
-      delete user.password;
-      delete user.external_code;
-      delete user.change_history;
-
       return {
         token,
         refreshToken,
-        profile: user,
+        profile: this.userService.getUserSafeData(user),
       };
     } catch (error) {
       throw error;
@@ -91,7 +89,7 @@ export class AuthService implements OnApplicationBootstrap {
       return {
         token,
         refreshToken,
-        profile: user,
+        profile: this.userService.getUserSafeData(user),
       };
     } catch (error) {
       throw error;
@@ -160,6 +158,37 @@ export class AuthService implements OnApplicationBootstrap {
     }
   }
 
+  async loginHospital(data: LoginDto): Promise<AuthResponse> {
+    try {
+      const { password, username } = data;
+      const hospital =
+        await this.hospitalService.findHospitalByUsername(username);
+
+      const validPassword = comparePassword(password, hospital.password);
+      if (!validPassword) {
+        throw new BadRequestException('Sai mật khẩu');
+      }
+
+      const { key, token, refreshToken } = await this.generateToken(
+        hospital,
+        roles.hospital,
+      );
+
+      await this.adminService.update(hospital.id, { security_key: key });
+
+      delete hospital.password;
+      delete hospital.security_key;
+
+      return {
+        token,
+        refreshToken,
+        profile: hospital,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async forgotPassword(username: string) {
     try {
       const user = await this.userService.findUserByUserName(username);
@@ -219,7 +248,7 @@ export class AuthService implements OnApplicationBootstrap {
 
   async refreshAccount(refresh: string) {
     try {
-      const target: accountWithRole = await this.validateAccount(refresh, true);
+      const target: accountWithRole = await this.validateRefresh(refresh);
 
       const { key, refreshToken, token } = await this.generateToken(
         target,
@@ -293,17 +322,14 @@ export class AuthService implements OnApplicationBootstrap {
     }
   }
 
-  async validateAccount(
-    token: string,
-    isRefresh?: boolean,
-  ): Promise<accountWithRole> {
+  async validateRefresh(token: string): Promise<accountWithRole> {
     try {
       const payload = this.jwtService.decode(token) as {
         id: number;
         role: role;
-        refresh?: boolean;
+        refresh: boolean;
       };
-      if (!!isRefresh && !payload.refresh) {
+      if (!payload.refresh) {
         throw new UnauthorizedException();
       }
       const { role, id } = payload;
@@ -317,6 +343,9 @@ export class AuthService implements OnApplicationBootstrap {
           break;
         case 'admin':
           target = await this.adminService.findById(id);
+          break;
+        case 'hospital':
+          target = await this.hospitalService.findById(id);
           break;
         default:
           target = await this.userService.findById(id);

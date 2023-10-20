@@ -20,6 +20,7 @@ model users {
   gender                  Boolean? //true-male, false-female
   dob                     DateTime?
   deleted                 Boolean   @default(false)
+  address                 String?
   identity_number         String?   @unique
   social_insurance_number String?   @unique
   external_code           String    @unique @default(dbgenerated("nanoid()")) @db.VarChar()
@@ -43,7 +44,6 @@ model doctors {
   avatar                      String?
   gender                      Boolean?
   role_id                     Int?
-  created_by                  Int?
   deleted                     Boolean       @default(false)
   created_at                  DateTime      @default(now())
   updated_at                  DateTime      @updatedAt
@@ -72,11 +72,18 @@ model doctor_roles {
 }
 
 model hospitals {
-  id            Int       @id @default(autoincrement())
-  image         String?
-  information   String?
-  created_by_id Int
-  created_at    DateTime  @default(now())
-  doctors       doctors[]
-  created_by    admins    @relation(fields: [created_by_id], references: [id])
+  id             Int       @id @default(autoincrement())
+  name           String    @unique
+  address        String
+  image          String?
+  information    String?
+  email          String    @unique
+  phone          String    @unique
+  password       String
+  security_key   String?
+  created_by_id  Int
+  created_at     DateTime  @default(now())
+  doctors        doctors[]
+  change_history Json      @default("[]") @db.JsonB
+  created_by     admins    @relation(fields: [created_by_id], references: [id])
 }

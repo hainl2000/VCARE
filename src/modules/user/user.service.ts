@@ -7,7 +7,12 @@ import { PrismaService } from 'src/shared/prisma.service';
 import { CreateUserDto } from './user.dto';
 import { generateHashPass } from 'src/utils/_security';
 import { Prisma, users } from '@prisma/client';
-import { checkFieldUpdateUser, userField } from 'src/constants/type';
+import {
+  checkFieldUpdateUser,
+  privateField,
+  userField,
+} from 'src/constants/type';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class UserService {
@@ -63,18 +68,20 @@ export class UserService {
         }
         return pre;
       },
-      {},
+      {
+        time: dayjs().valueOf(),
+      },
     );
-    if (Object.keys(log).length > 0) {
-      data['change_history'] = (user.change_history as Prisma.JsonArray).push(
-        log,
-      );
+    if (Object.keys(log).length > 1) {
+      data.change_history = (user.change_history as Prisma.JsonArray).push(log);
     }
     try {
-      return await this.prisma.users.update({
+      const result = await this.prisma.users.update({
         where: { id: user.id },
         data,
       });
+
+      return this.getUserSafeData(result);
     } catch (error) {
       throw error;
     }
@@ -86,5 +93,15 @@ export class UserService {
     } catch (error) {
       throw error;
     }
+  }
+
+  getUserSafeData(user: users) {
+    Object.keys(user).forEach((key: userField) => {
+      if (privateField.includes(key)) {
+        delete user[key];
+      }
+    });
+
+    return user;
   }
 }

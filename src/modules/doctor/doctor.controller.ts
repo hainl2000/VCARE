@@ -12,6 +12,7 @@ import { AuthRole } from 'src/decorators/authorization.decorator';
 import { CreateDoctorDto, DoctorResponse } from './doctor.dto';
 import { DoctorService } from './doctor.service';
 import {
+  ApiBearerAuth,
   ApiConsumes,
   ApiCreatedResponse,
   ApiOkResponse,
@@ -21,6 +22,7 @@ import {
 
 @ApiTags('doctor')
 @ApiConsumes('application/json')
+@ApiBearerAuth('authorization')
 @UsePipes(
   new ValidationPipe({
     whitelist: true,
@@ -37,9 +39,9 @@ export class DoctorController {
     type: DoctorResponse,
     description: 'Tạo tài khoản thành công thành công',
   })
-  @AuthRole('admin')
+  @AuthRole('hospital')
   @Post()
-  create(@Body() data: CreateDoctorDto, @Account() account: any) {
+  create(@Body() data: CreateDoctorDto) {
     return this.doctorService.create(data);
   }
 }

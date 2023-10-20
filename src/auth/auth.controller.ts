@@ -86,6 +86,17 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ description: 'Bệnh viện đăng nhập' })
+  @ApiOkResponse({
+    type: AuthResponse,
+    description: 'Đăng nhập thành công',
+  })
+  @Post('hospital')
+  loginHospital(@Body() data: LoginDto) {
+    return this.authService.loginHospital(data);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ description: 'Người dùng quên mật khẩu' })
   @ApiOkResponse({
     type: ForgotPasswordResponse,
