@@ -53,15 +53,20 @@ export class CreateDoctorDto {
   @MinLength(10)
   code?: string;
 
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  hospital_id: number;
+
   @ApiProperty({
-    description: 'id bệnh viện',
+    description: 'id khoa khám',
     example: 1,
     required: true,
   })
   @IsDefined()
   @IsInt()
   @IsPositive()
-  hospital_id: number;
+  department_id: number;
 
   @ApiProperty({
     description: 'mật khẩu',

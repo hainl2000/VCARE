@@ -10,49 +10,69 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum roles {
+  user
+  admin
+  doctor
+  hospital
+}
+
 model users {
-  id                      Int       @id @default(autoincrement())
-  phone                   String    @unique
-  email                   String    @unique
-  password                String
-  full_name               String?
-  avatar                  String?
-  gender                  Boolean? //true-male, false-female
-  dob                     DateTime?
-  deleted                 Boolean   @default(false)
-  address                 String?
-  identity_number         String?   @unique
-  social_insurance_number String?   @unique
-  external_code           String    @unique @default(dbgenerated("nanoid()")) @db.VarChar()
-  security_key            String?
-  otp_data                Json?     @default("{}") @db.JsonB
-  created_at              DateTime  @default(now())
-  deleted_at              DateTime?
-  updated_at              DateTime  @updatedAt
-  change_history          Json      @default("[]") @db.JsonB
+  id                       Int                        @id @default(autoincrement())
+  phone                    String                     @unique
+  email                    String                     @unique
+  password                 String
+  full_name                String?
+  avatar                   String?
+  gender                   Boolean? //true-male, false-female
+  dob                      DateTime?
+  deleted                  Boolean                    @default(false)
+  address                  String?
+  identity_number          String?                    @unique
+  social_insurance_number  String?                    @unique
+  external_code            String                     @unique @default(dbgenerated("nanoid()")) @db.VarChar()
+  security_key             String?
+  otp_data                 Json?                      @default("{}") @db.JsonB
+  created_at               DateTime                   @default(now())
+  deleted_at               DateTime?
+  health_status            Json?                      @default("{}") @db.JsonB
+  updated_at               DateTime                   @updatedAt
+  change_history           Json                       @default("[]") @db.JsonB
+  health_check_appointment health_check_appointment[]
+}
+
+model health_history {
+  id        Int      @id @default(autoincrement())
+  status    Json?    @default("{}") @db.JsonB
+  update_by Int
+  role      roles
+  update_at DateTime @default(now())
 }
 
 model doctors {
-  id                          Int           @id @default(autoincrement())
+  id                          Int                        @id @default(autoincrement())
   hospital_id                 Int
-  practicing_certificate_code String?       @unique
-  code                        String?       @unique
+  department_id               Int
+  practicing_certificate_code String?                    @unique
+  code                        String?                    @unique
   full_name                   String?
-  email                       String        @unique
-  phone                       String        @unique
+  email                       String                     @unique
+  phone                       String                     @unique
   password                    String
   avatar                      String?
   gender                      Boolean?
   role_id                     Int?
-  deleted                     Boolean       @default(false)
-  created_at                  DateTime      @default(now())
-  updated_at                  DateTime      @updatedAt
+  deleted                     Boolean                    @default(false)
+  created_at                  DateTime                   @default(now())
+  updated_at                  DateTime                   @updatedAt
   deleted_at                  DateTime?
-  external_code               String        @unique @default(dbgenerated("nanoid()")) @db.VarChar()
-  change_history              Json          @default("[]") @db.JsonB
+  external_code               String                     @unique @default(dbgenerated("nanoid()")) @db.VarChar()
+  change_history              Json                       @default("[]") @db.JsonB
   security_key                String?
-  hospital                    hospitals     @relation(fields: [hospital_id], references: [id])
-  role                        doctor_roles? @relation(fields: [role_id], references: [id])
+  hospital                    hospitals                  @relation(fields: [hospital_id], references: [id])
+  department                  hospital_department        @relation(fields: [department_id], references: [id])
+  role                        doctor_roles?              @relation(fields: [role_id], references: [id])
+  health_check_appointment    health_check_appointment[]
 }
 
 model admins {
@@ -65,6 +85,17 @@ model admins {
   hospitals    hospitals[]
 }
 
+model hospital_department {
+  id                       Int                        @id @default(autoincrement())
+  name                     String
+  hospital_id              Int
+  hospital                 hospitals                  @relation(fields: [hospital_id], references: [id])
+  doctors                  doctors[]
+  health_check_appointment health_check_appointment[]
+
+  @@unique([name, hospital_id])
+}
+
 model doctor_roles {
   id      Int       @id @default(autoincrement())
   name    String    @unique
@@ -72,18 +103,39 @@ model doctor_roles {
 }
 
 model hospitals {
-  id             Int       @id @default(autoincrement())
-  name           String    @unique
-  address        String
-  image          String?
-  information    String?
-  email          String    @unique
-  phone          String    @unique
-  password       String
-  security_key   String?
-  created_by_id  Int
-  created_at     DateTime  @default(now())
-  doctors        doctors[]
-  change_history Json      @default("[]") @db.JsonB
-  created_by     admins    @relation(fields: [created_by_id], references: [id])
+  id                       Int                        @id @default(autoincrement())
+  name                     String                     @unique
+  address                  String
+  image                    String?
+  information              String?
+  email                    String                     @unique
+  phone                    String                     @unique
+  password                 String
+  security_key             String?
+  created_by_id            Int
+  created_at               DateTime                   @default(now())
+  doctors                  doctors[]
+  change_history           Json                       @default("[]") @db.JsonB
+  created_by               admins                     @relation(fields: [created_by_id], references: [id])
+  hospital_department      hospital_department[]
+  health_check_appointment health_check_appointment[]
+}
+
+model health_check_appointment {
+  id                Int                 @id @default(autoincrement())
+  hospital_id       Int
+  department_id     Int
+  user_id           Int
+  doctor_id         Int?
+  external_code     String              @unique @default(dbgenerated("nanoid()")) @db.VarChar()
+  medical_condition String
+  time              DateTime
+  time_in_string    String
+  finished          Boolean             @default(false)
+  result            Json?               @db.JsonB
+  note              Json?               @db.JsonB
+  user              users               @relation(fields: [user_id], references: [id])
+  doctor            doctors?            @relation(fields: [doctor_id], references: [id])
+  hospital          hospitals           @relation(fields: [hospital_id], references: [id])
+  department        hospital_department @relation(fields: [department_id], references: [id])
 }

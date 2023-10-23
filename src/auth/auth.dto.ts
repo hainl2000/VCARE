@@ -1,6 +1,5 @@
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import { IsDefined, IsString, MinLength } from 'class-validator';
-import { DoctorResponse } from 'src/modules/doctor/doctor.dto';
 import { CreateUserDto, UserResponse } from 'src/modules/user/user.dto';
 
 export class LoginDto {

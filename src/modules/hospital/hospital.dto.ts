@@ -1,10 +1,12 @@
 import {
   IsDefined,
   IsEmail,
+  IsOptional,
   IsString,
   Matches,
   MinLength,
 } from 'class-validator';
+import { ListDto } from 'src/constants/class';
 
 export class CreateHospitalDto {
   @IsDefined()
@@ -30,6 +32,12 @@ export class CreateHospitalDto {
   @IsString()
   @MinLength(6)
   password: string;
+}
+
+export class ListHospitalQuery extends ListDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
 }
 
 export class HospitalDetail {}

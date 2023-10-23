@@ -4,9 +4,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, admins } from '@prisma/client';
-import { CreateHospitalDto } from './hospital.dto';
+import { CreateHospitalDto, ListHospitalQuery } from './hospital.dto';
 import { PrismaService } from 'src/shared/prisma.service';
-import { generateHashPass } from 'src/utils';
+import { generateHashPass, getAccountSafeData } from 'src/utils';
 
 @Injectable()
 export class HospitalService {
@@ -75,6 +75,44 @@ export class HospitalService {
   async findById(id: number) {
     try {
       return await this.prisma.hospitals.findUnique({ where: { id } });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findAll(query: ListHospitalQuery) {
+    const { name, pageIndex, pageSize } = query;
+    const index = pageIndex ?? 1;
+    const size = pageSize ?? 10;
+    const whereOption: Prisma.hospitalsWhereInput = {};
+    if (!!name) {
+      whereOption.name = { contains: name, mode: 'insensitive' };
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.hospitals.findMany({
+        where: whereOption,
+        skip: (index - 1) * size,
+        take: size,
+        orderBy: { id: 'desc' },
+      }),
+      this.prisma.hospitals.count({ where: whereOption }),
+    ]);
+
+    return {
+      data: data.map((hospital) => getAccountSafeData(hospital)),
+      total,
+    };
+  }
+
+  async getDetail(id: number) {
+    try {
+      const result = await this.prisma.hospitals.findUnique({ where: { id } });
+      if (!result) {
+        throw new NotFoundException('Không tìm thấy bệnh viện này');
+      }
+
+      return getAccountSafeData(result);
     } catch (error) {
       throw error;
     }

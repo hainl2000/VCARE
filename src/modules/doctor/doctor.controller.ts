@@ -7,18 +7,18 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { Account } from 'src/decorators/account.decorator';
-import { AuthRole } from 'src/decorators/authorization.decorator';
-import { CreateDoctorDto, DoctorResponse } from './doctor.dto';
-import { DoctorService } from './doctor.service';
 import {
   ApiBearerAuth,
   ApiConsumes,
   ApiCreatedResponse,
-  ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { hospitals } from '@prisma/client';
+import { Account } from 'src/decorators/account.decorator';
+import { AuthRole } from 'src/decorators/authorization.decorator';
+import { CreateDoctorDto, DoctorResponse } from './doctor.dto';
+import { DoctorService } from './doctor.service';
 
 @ApiTags('doctor')
 @ApiConsumes('application/json')
@@ -41,7 +41,7 @@ export class DoctorController {
   })
   @AuthRole('hospital')
   @Post()
-  create(@Body() data: CreateDoctorDto) {
-    return this.doctorService.create(data);
+  create(@Body() data: CreateDoctorDto, @Account() hospital: hospitals) {
+    return this.doctorService.create(data, hospital);
   }
 }

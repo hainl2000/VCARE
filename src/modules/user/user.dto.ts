@@ -33,9 +33,9 @@ export class CreateUserDto {
   @ApiProperty({
     description: 'bảo hiểm xã hội',
     example: '454534583495',
-    required: true,
+    required: false,
   })
-  @IsDefined()
+  @IsOptional()
   @IsString()
   @MinLength(10)
   social_insurance_number: string;
@@ -43,9 +43,9 @@ export class CreateUserDto {
   @ApiProperty({
     description: 'căn cước công dân/chứng minh nhân dân',
     example: '030045744985',
-    required: true,
+    required: false,
   })
-  @IsDefined()
+  @IsOptional()
   @IsString()
   @MinLength(10)
   identity_number: string;

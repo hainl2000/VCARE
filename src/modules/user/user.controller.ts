@@ -19,6 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UpdateUserDto, UserResponse } from './user.dto';
+import { getAccountSafeData } from 'src/utils';
 
 @ApiTags('user')
 @ApiBearerAuth('authorization')
@@ -36,7 +37,7 @@ export class UserController {
   })
   @Get('profile')
   getProfile(@Account() account: users) {
-    return this.userService.getUserSafeData(account);
+    return getAccountSafeData(account);
   }
 
   @AuthRole('user')

@@ -22,6 +22,12 @@ export type accountWithRole = account & { role: role };
 
 export type userField = keyof users;
 
+export type accountField =
+  | keyof users
+  | keyof admins
+  | keyof hospitals
+  | keyof doctors;
+
 export const checkFieldUpdateUser: userField[] = [
   'phone',
   'email',
@@ -35,7 +41,7 @@ export const checkFieldUpdateUser: userField[] = [
   'social_insurance_number',
 ];
 
-export const privateField: userField[] = [
+export const accountPrivateField: accountField[] = [
   'password',
   'security_key',
   'external_code',

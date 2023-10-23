@@ -5,14 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma.service';
 import { CreateUserDto } from './user.dto';
-import { generateHashPass } from 'src/utils/_security';
+import { generateHashPass, getAccountSafeData } from 'src/utils/_security';
 import { Prisma, users } from '@prisma/client';
 import {
   checkFieldUpdateUser,
-  privateField,
+  accountPrivateField,
   userField,
 } from 'src/constants/type';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class UserService {
@@ -81,7 +81,7 @@ export class UserService {
         data,
       });
 
-      return this.getUserSafeData(result);
+      return getAccountSafeData(result);
     } catch (error) {
       throw error;
     }
@@ -93,15 +93,5 @@ export class UserService {
     } catch (error) {
       throw error;
     }
-  }
-
-  getUserSafeData(user: users) {
-    Object.keys(user).forEach((key: userField) => {
-      if (privateField.includes(key)) {
-        delete user[key];
-      }
-    });
-
-    return user;
   }
 }

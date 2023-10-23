@@ -13,7 +13,11 @@ import { AdminService } from 'src/modules/admin/admin.service';
 import { DoctorService } from 'src/modules/doctor/doctor.service';
 import { UserService } from 'src/modules/user/user.service';
 import { generateOtp } from 'src/utils';
-import { comparePassword, generateHashPass } from 'src/utils/_security';
+import {
+  comparePassword,
+  generateHashPass,
+  getAccountSafeData,
+} from 'src/utils/_security';
 import { account, accountWithRole, role, roles } from './../constants/type';
 import {
   AuthResponse,
@@ -63,7 +67,7 @@ export class AuthService implements OnApplicationBootstrap {
       return {
         token,
         refreshToken,
-        profile: this.userService.getUserSafeData(user),
+        profile: getAccountSafeData(user),
       };
     } catch (error) {
       throw error;
@@ -89,7 +93,7 @@ export class AuthService implements OnApplicationBootstrap {
       return {
         token,
         refreshToken,
-        profile: this.userService.getUserSafeData(user),
+        profile: getAccountSafeData(user),
       };
     } catch (error) {
       throw error;
@@ -174,7 +178,7 @@ export class AuthService implements OnApplicationBootstrap {
         roles.hospital,
       );
 
-      await this.adminService.update(hospital.id, { security_key: key });
+      await this.hospitalService.update(hospital.id, { security_key: key });
 
       delete hospital.password;
       delete hospital.security_key;

@@ -6,13 +6,13 @@ import {
 import { PrismaService } from 'src/shared/prisma.service';
 import { CreateDoctorDto } from './doctor.dto';
 import { generateHashPass } from 'src/utils/_security';
-import { Prisma } from '@prisma/client';
+import { Prisma, hospitals } from '@prisma/client';
 
 @Injectable()
 export class DoctorService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateDoctorDto) {
+  async create(data: CreateDoctorDto, hospital: hospitals) {
     try {
       const { email, phone } = data;
       const existed = await this.prisma.doctors.findFirst({
@@ -24,6 +24,7 @@ export class DoctorService {
       }
 
       data.password = generateHashPass(data.password);
+      data.hospital_id = hospital.id;
 
       return await this.prisma.doctors.create({ data });
     } catch (error) {

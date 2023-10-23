@@ -21,6 +21,7 @@ export class RequestMiddleware implements NestMiddleware {
           id: number;
           role: role;
         };
+
         const { role, id } = payload;
         let target: account;
         switch (role) {
