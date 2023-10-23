@@ -5,14 +5,14 @@ RETURNS text AS $$
 DECLARE
   id text := '';
   i int := 0;
-  urlAlphabet char(64) := 'ModuleSymbhasOwnPr-0123456789ABCDEFGHNRVfgctiUvz_KqYTJkLxpZXIjQW';
+  urlAlphabet char(62) := 'ModuleSymbhasOwnPr0123456789ABCDEFGHNRVfgctiUvzKqYTJkLxpZXIjQW';
   bytes bytea := gen_random_bytes(size);
   byte int;
   pos int;
 BEGIN
   WHILE i < size LOOP
     byte := get_byte(bytes, i);
-    pos := (byte & 63) + 1; -- + 1 because substr starts at 1 for some reason
+    pos := (byte & 61) + 1; -- + 1 because substr starts at 1 for some reason
     id := id || substr(urlAlphabet, pos, 1);
     i = i + 1;
   END LOOP;

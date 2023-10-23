@@ -7,20 +7,22 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { hospitals } from '@prisma/client';
 import { Account } from 'src/decorators/account.decorator';
 import { AuthRole } from 'src/decorators/authorization.decorator';
 import { CreateDoctorDto, DoctorResponse } from './doctor.dto';
 import { DoctorService } from './doctor.service';
-import {
-  ApiConsumes,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
 
 @ApiTags('doctor')
 @ApiConsumes('application/json')
+@ApiBearerAuth('authorization')
 @UsePipes(
   new ValidationPipe({
     whitelist: true,
@@ -37,9 +39,9 @@ export class DoctorController {
     type: DoctorResponse,
     description: 'Tạo tài khoản thành công thành công',
   })
-  @AuthRole('admin')
+  @AuthRole('hospital')
   @Post()
-  create(@Body() data: CreateDoctorDto, @Account() account: any) {
-    return this.doctorService.create(data);
+  create(@Body() data: CreateDoctorDto, @Account() hospital: hospitals) {
+    return this.doctorService.create(data, hospital);
   }
 }

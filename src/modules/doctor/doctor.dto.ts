@@ -6,6 +6,7 @@ import {
   IsPhoneNumber,
   IsPositive,
   IsString,
+  Matches,
   MinLength,
 } from 'class-validator';
 import { HospitalDetail } from '../hospital/hospital.dto';
@@ -27,7 +28,9 @@ export class CreateDoctorDto {
     required: true,
   })
   @IsDefined()
-  @IsPhoneNumber()
+  @Matches(/(0[3|5|7|8|9])+([0-9]{8})\b/g, {
+    message: 'phone must be a valid number',
+  })
   phone: string;
 
   @ApiProperty({
@@ -50,15 +53,20 @@ export class CreateDoctorDto {
   @MinLength(10)
   code?: string;
 
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  hospital_id: number;
+
   @ApiProperty({
-    description: 'id bệnh viện',
+    description: 'id khoa khám',
     example: 1,
     required: true,
   })
   @IsDefined()
   @IsInt()
   @IsPositive()
-  hospital_id: number;
+  department_id: number;
 
   @ApiProperty({
     description: 'mật khẩu',
