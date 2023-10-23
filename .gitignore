@@ -38,3 +38,6 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 id_rsa
+
+
+/key/*

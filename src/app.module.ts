@@ -13,6 +13,7 @@ import configuration from './config/environment-configuration';
 import { RequestMiddleware } from './core/request.middleware';
 import { OpenApiModule } from './modules/openapi.module';
 import { SharedModule } from './shared/shared.module';
+import { UploadModule } from './upload/upload.module';
 @Module({
   imports: [
     AuthModule,
@@ -35,6 +36,7 @@ import { SharedModule } from './shared/shared.module';
         adapter: new HandlebarsAdapter(),
       },
     }),
+    UploadModule,
   ],
 })
 export class AppModule implements NestModule {
