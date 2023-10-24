@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Put,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -17,8 +18,9 @@ import {
 import { hospitals } from '@prisma/client';
 import { Account } from 'src/decorators/account.decorator';
 import { AuthRole } from 'src/decorators/authorization.decorator';
-import { CreateDoctorDto, DoctorResponse } from './doctor.dto';
+import { CreateDoctorDto, DoctorResponse, UpdateDoctorDto } from './doctor.dto';
 import { DoctorService } from './doctor.service';
+import { accountWithRole } from 'src/constants/type';
 
 @ApiTags('doctor')
 @ApiConsumes('application/json')
@@ -43,5 +45,19 @@ export class DoctorController {
   @Post()
   create(@Body() data: CreateDoctorDto, @Account() hospital: hospitals) {
     return this.doctorService.create(data, hospital);
+  }
+
+  @AuthRole('hospital')
+  @Put()
+  updateDoctor(
+    @Body() data: UpdateDoctorDto,
+    @Account() account: accountWithRole,
+  ) {
+    const { doctor_id, ...updateData } = data;
+    return this.doctorService.update(
+      data.doctor_id,
+      updateData,
+      account as hospitals,
+    );
   }
 }

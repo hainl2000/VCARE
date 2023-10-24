@@ -33,6 +33,7 @@ export class RequestMiddleware implements NestMiddleware {
           case 'doctor':
             target = await this.prismaService.doctors.findUnique({
               where: { id },
+              include: { drole: true },
             });
             break;
           case 'admin':
@@ -53,12 +54,6 @@ export class RequestMiddleware implements NestMiddleware {
         }
 
         if (!!target) {
-          const { security_key } = target;
-
-          JWT.verify(token, security_key, {
-            algorithms: ['RS256'],
-          });
-
           account = { ...target, role };
         }
       } catch (error) {}

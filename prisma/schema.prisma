@@ -39,6 +39,25 @@ model users {
   updated_at               DateTime                   @updatedAt
   change_history           Json                       @default("[]") @db.JsonB
   health_check_appointment health_check_appointment[]
+  wallet                   wallet?
+}
+
+model wallet {
+  id      String               @id @default(dbgenerated("nanoid()")) @db.VarChar()
+  user_id Int                  @unique
+  remain  Float                @default(5000000)
+  user    users                @relation(fields: [user_id], references: [id])
+  log     wallet_transaction[]
+}
+
+model wallet_transaction {
+  id        Int                      @id @default(autoincrement())
+  amount    Float
+  note      String?
+  ref_id    Int                      @unique
+  ref       health_check_appointment @relation(fields: [ref_id], references: [id])
+  wallet_id String?                  @db.VarChar()
+  wallet    wallet?                  @relation(fields: [wallet_id], references: [id])
 }
 
 model health_history {
@@ -52,7 +71,8 @@ model health_history {
 model doctors {
   id                          Int                        @id @default(autoincrement())
   hospital_id                 Int
-  department_id               Int
+  department_id               Int?
+  service_id                  Int?
   practicing_certificate_code String?                    @unique
   code                        String?                    @unique
   full_name                   String?
@@ -70,9 +90,24 @@ model doctors {
   change_history              Json                       @default("[]") @db.JsonB
   security_key                String?
   hospital                    hospitals                  @relation(fields: [hospital_id], references: [id])
-  department                  hospital_department        @relation(fields: [department_id], references: [id])
-  role                        doctor_roles?              @relation(fields: [role_id], references: [id])
+  department                  hospital_department?       @relation(fields: [department_id], references: [id])
+  drole                       doctor_roles?              @relation(fields: [role_id], references: [id])
+  service                     hospital_services?         @relation(fields: [service_id], references: [id])
   health_check_appointment    health_check_appointment[]
+  use_service                 use_service[]
+}
+
+model hospital_services {
+  id          Int           @id @default(autoincrement())
+  hospital    hospitals     @relation(fields: [hospital_id], references: [id])
+  hospital_id Int
+  name        String
+  fee         Float?
+  template    Json?         @default("{}") @db.JsonB
+  use_service use_service[]
+  doctors     doctors[]
+
+  @@unique([name, hospital_id])
 }
 
 model admins {
@@ -119,23 +154,44 @@ model hospitals {
   created_by               admins                     @relation(fields: [created_by_id], references: [id])
   hospital_department      hospital_department[]
   health_check_appointment health_check_appointment[]
+  hospital_service         hospital_services[]
 }
 
 model health_check_appointment {
-  id                Int                 @id @default(autoincrement())
-  hospital_id       Int
-  department_id     Int
-  user_id           Int
-  doctor_id         Int?
-  external_code     String              @unique @default(dbgenerated("nanoid()")) @db.VarChar()
-  medical_condition String
-  time              DateTime
-  time_in_string    String
-  finished          Boolean             @default(false)
-  result            Json?               @db.JsonB
-  note              Json?               @db.JsonB
-  user              users               @relation(fields: [user_id], references: [id])
-  doctor            doctors?            @relation(fields: [doctor_id], references: [id])
-  hospital          hospitals           @relation(fields: [hospital_id], references: [id])
-  department        hospital_department @relation(fields: [department_id], references: [id])
+  id                 Int                 @id @default(autoincrement())
+  hospital_id        Int
+  department_id      Int
+  user_id            Int
+  doctor_id          Int?
+  external_code      String              @unique @default(dbgenerated("nanoid()")) @db.VarChar()
+  medical_condition  String
+  time               DateTime
+  time_in_string     String
+  finished           Boolean             @default(false)
+  conclude           Json?               @db.JsonB
+  note               String?
+  medicine           Json?               @db.JsonB
+  fee                Float?
+  fee_paid           Boolean             @default(false)
+  user               users               @relation(fields: [user_id], references: [id])
+  doctor             doctors?            @relation(fields: [doctor_id], references: [id])
+  hospital           hospitals           @relation(fields: [hospital_id], references: [id])
+  department         hospital_department @relation(fields: [department_id], references: [id])
+  wallet_transaction wallet_transaction?
+  services           use_service[]
+}
+
+model use_service {
+  appointment    health_check_appointment @relation(fields: [appointment_id], references: [id])
+  appointment_id Int
+
+  service    hospital_services @relation(fields: [service_id], references: [id])
+  service_id Int
+
+  doctor    doctors? @relation(fields: [doctor_id], references: [id])
+  doctor_id Int?
+
+  result Json @default("{}") @db.JsonB
+
+  @@id([appointment_id, service_id])
 }

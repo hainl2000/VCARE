@@ -1,4 +1,11 @@
-import { admins, doctors, users, Prisma, hospitals } from '@prisma/client';
+import {
+  admins,
+  doctors,
+  users,
+  Prisma,
+  hospitals,
+  doctor_roles,
+} from '@prisma/client';
 
 export const roles = {
   user: 'user',
@@ -9,6 +16,8 @@ export const roles = {
 
 export const ROLE_KEY = 'ROLE_KEY';
 
+export const DROLE_KEY = 'DROLE_KEY';
+
 export enum ENV {
   local = 'local',
   dev = 'dev',
@@ -16,7 +25,11 @@ export enum ENV {
 
 export type role = keyof typeof roles;
 
-export type account = users | admins | doctors | hospitals;
+export type account =
+  | users
+  | admins
+  | (doctors & { drole: doctor_roles | null })
+  | hospitals;
 
 export type accountWithRole = account & { role: role };
 
@@ -48,3 +61,21 @@ export const accountPrivateField: accountField[] = [
   'otp_data',
   'change_history',
 ];
+
+export type bloodType =
+  | 'O+'
+  | 'o+'
+  | 'O-'
+  | 'o-'
+  | 'A+'
+  | 'a+'
+  | 'A-'
+  | 'a-'
+  | 'B+'
+  | 'b+'
+  | 'B-'
+  | 'b-'
+  | 'AB+'
+  | 'ab+'
+  | 'AB-'
+  | 'ab-';

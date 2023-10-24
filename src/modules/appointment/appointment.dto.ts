@@ -3,7 +3,9 @@ import {
   IsBoolean,
   IsDefined,
   IsInt,
+  IsNotEmpty,
   IsNotEmptyObject,
+  IsObject,
   IsOptional,
   IsPositive,
   IsString,
@@ -47,10 +49,6 @@ export class CreateAppointmentDto {
 export class ListAppointmentQuery extends ListDto {
   @IsOptional()
   @IsString()
-  name?: string;
-
-  @IsOptional()
-  @IsString()
   startFrom?: string;
 
   @IsOptional()
@@ -59,7 +57,7 @@ export class ListAppointmentQuery extends ListDto {
 
   @IsOptional()
   @IsString()
-  external_code?: string;
+  search_value?: string;
 }
 
 export class UpdateAppointmentDto {
@@ -69,9 +67,32 @@ export class UpdateAppointmentDto {
 
   @IsOptional()
   @IsNotEmptyObject()
-  result?: Record<string, string>;
+  conclude?: Record<string, string>;
 
   @IsOptional()
   @IsNotEmptyObject()
   note?: Record<string, string>;
+
+  @IsOptional()
+  @IsInt({ each: true })
+  @IsPositive({ each: true })
+  services: number[];
+
+  fee?: number;
+}
+
+export class UpdateServiceResultDto {
+  @IsNotEmpty()
+  @IsObject()
+  result: Record<string, any>;
+
+  @IsNotEmpty()
+  @IsInt()
+  @IsPositive()
+  appointment_id: number;
+
+  @IsNotEmpty()
+  @IsInt()
+  @IsPositive()
+  service_id: number;
 }

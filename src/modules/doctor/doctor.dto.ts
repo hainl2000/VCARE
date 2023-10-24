@@ -1,16 +1,16 @@
+import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsDefined,
   IsEmail,
   IsInt,
   IsOptional,
-  IsPhoneNumber,
   IsPositive,
   IsString,
   Matches,
   MinLength,
 } from 'class-validator';
 import { HospitalDetail } from '../hospital/hospital.dto';
-import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 
 export class CreateDoctorDto {
   @ApiProperty({
@@ -61,12 +61,27 @@ export class CreateDoctorDto {
   @ApiProperty({
     description: 'id khoa khám',
     example: 1,
-    required: true,
+    required: false,
   })
-  @IsDefined()
+  @IsOptional()
   @IsInt()
   @IsPositive()
-  department_id: number;
+  department_id?: number;
+
+  @ApiProperty({
+    description: 'id dịch vụ',
+    example: 1,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  service_id?: number;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  role_id?: number;
 
   @ApiProperty({
     description: 'mật khẩu',
@@ -77,6 +92,44 @@ export class CreateDoctorDto {
   @IsString()
   @MinLength(6)
   password: string;
+}
+
+export class UpdateDoctorDto {
+  @IsDefined()
+  @IsInt()
+  @IsPositive()
+  doctor_id: number;
+
+  @IsOptional()
+  @IsString()
+  practicing_certificate_code?: string;
+
+  @IsOptional()
+  @IsString()
+  code?: string;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  department_id?: number;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  service_id?: number;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  role_id?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  gender: boolean;
+
+  @IsOptional()
+  @IsString()
+  avatar?: string;
 }
 
 export class DoctorResponse {

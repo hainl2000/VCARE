@@ -7,15 +7,17 @@ import {
   Post,
   Put,
   Query,
+  SetMetadata,
 } from '@nestjs/common';
 import { doctors, users } from '@prisma/client';
-import { accountWithRole } from 'src/constants/type';
+import { DROLE_KEY, accountWithRole } from 'src/constants/type';
 import { Account } from 'src/decorators/account.decorator';
 import { AuthRole } from 'src/decorators/authorization.decorator';
 import {
   CreateAppointmentDto,
   ListAppointmentQuery,
   UpdateAppointmentDto,
+  UpdateServiceResultDto,
 } from './appointment.dto';
 import { AppointmentService } from './appointment.service';
 
@@ -35,7 +37,8 @@ export class AppointmentController {
     return this.appointmentService.checkTime(time, user);
   }
 
-  @AuthRole()
+  @AuthRole('hospital', 'doctor', 'user')
+  @SetMetadata(DROLE_KEY, ['reception', 'specialis', 'service'])
   @Get()
   findAll(
     @Query() query: ListAppointmentQuery,
@@ -51,12 +54,28 @@ export class AppointmentController {
   }
 
   @AuthRole('doctor')
+  @SetMetadata(DROLE_KEY, ['specialis'])
   @Put(':id')
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateAppointmentDto,
     @Account() account: doctors,
   ) {
-    return this.appointmentService.update(id, data, account);
+    const { services, ...updateData } = data;
+    if (!!services && services.length > 0) {
+      const fee = await this.appointmentService.addServices(id, services);
+      updateData.fee = fee;
+    }
+    return this.appointmentService.update(id, updateData, account);
+  }
+
+  @AuthRole('doctor')
+  @SetMetadata(DROLE_KEY, ['service'])
+  @Post('service')
+  updateServiceResult(
+    @Body() data: UpdateServiceResultDto,
+    @Account() doctor: doctors,
+  ) {
+    return this.appointmentService.updateServiceResult(data, doctor);
   }
 }

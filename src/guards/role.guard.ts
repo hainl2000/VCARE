@@ -3,9 +3,11 @@ import {
   Injectable,
   ExecutionContext,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ROLE_KEY, accountWithRole, role } from 'src/constants/type';
+import { doctor_roles, doctors } from '@prisma/client';
+import { DROLE_KEY, ROLE_KEY, accountWithRole, role } from 'src/constants/type';
 @Injectable()
 export class RoleGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -27,6 +29,42 @@ export class RoleGuard implements CanActivate {
     if (!account) {
       throw new UnauthorizedException();
     }
-    return acceptRoles.includes(account.role);
+    const canAccess = acceptRoles.includes(account.role);
+
+    if (canAccess && account.role !== 'doctor') {
+      return true;
+    }
+
+    const requireDoctorRoles = this.reflector.get<string[]>(
+      DROLE_KEY,
+      context.getHandler(),
+    );
+
+    if (requireDoctorRoles.length === 0) return true;
+    const doctor = account as doctors & {
+      drole: doctor_roles | null;
+      role: role;
+    };
+
+    if (!doctor.drole) {
+      return false;
+    }
+
+    switch (doctor.drole.name) {
+      case 'service':
+        if (!doctor.service_id) {
+          throw new BadRequestException('Chức năng yêu cầu bác sĩ có dịch vụ');
+        }
+        break;
+      case 'specialis':
+        if (!doctor.department_id) {
+          throw new BadRequestException('Chức năng yêu cầu bác sĩ có khoa');
+        }
+        break;
+      default:
+        break;
+    }
+
+    return requireDoctorRoles.includes(doctor.drole.name);
   }
 }

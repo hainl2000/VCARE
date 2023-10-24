@@ -7,6 +7,7 @@ import { PrismaService } from 'src/shared/prisma.service';
 import { CreateDoctorDto } from './doctor.dto';
 import { generateHashPass } from 'src/utils/_security';
 import { Prisma, hospitals } from '@prisma/client';
+import { accountWithRole } from 'src/constants/type';
 
 @Injectable()
 export class DoctorService {
@@ -55,8 +56,15 @@ export class DoctorService {
       Prisma.doctorsUpdateInput,
       Prisma.doctorsUncheckedUpdateInput
     >,
+    hospital?: hospitals,
   ) {
     try {
+      if (!!hospital) {
+        const doctor = await this.findById(id);
+        if (!doctor || doctor.hospital_id !== hospital.id) {
+          throw new BadRequestException('Bác sĩ không hợp lệ');
+        }
+      }
       return await this.prisma.doctors.update({
         where: { id },
         data,

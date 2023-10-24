@@ -6,6 +6,8 @@ import { DoctorModule } from './doctor/doctor.module';
 import { HealthStatusModule } from './health-status/health-status.module';
 import { HospitalModule } from './hospital/hospital.module';
 import { UserModule } from './user/user.module';
+import { DoctorRoleModule } from './doctor-role/doctor-role.module';
+import { HospitalServiceModule } from './hospital-service/hospital-service.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { UserModule } from './user/user.module';
     DepartmentModule,
     AppointmentModule,
     HealthStatusModule,
+    DoctorRoleModule,
+    HospitalServiceModule,
   ],
 })
 export class OpenApiModule {}

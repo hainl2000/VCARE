@@ -1,9 +1,23 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma.service';
-import { CreateAppointmentDto, ListAppointmentQuery } from './appointment.dto';
-import { Prisma, doctors, users } from '@prisma/client';
+import {
+  CreateAppointmentDto,
+  ListAppointmentQuery,
+  UpdateServiceResultDto,
+} from './appointment.dto';
+import {
+  Prisma,
+  doctor_roles,
+  doctors,
+  hospital_services,
+  users,
+} from '@prisma/client';
 import * as dayjs from 'dayjs';
-import { account, accountWithRole, userField } from 'src/constants/type';
+import { account, accountWithRole, role, userField } from 'src/constants/type';
 import { UserService } from '../user/user.service';
 import { dateFilter } from 'src/utils';
 
@@ -85,8 +99,7 @@ export class AppointmentService {
   }
 
   async findAll(query: ListAppointmentQuery, account: accountWithRole) {
-    const { endAt, external_code, name, pageIndex, pageSize, startFrom } =
-      query;
+    const { endAt, search_value, pageIndex, pageSize, startFrom } = query;
 
     const size = pageSize ?? 10;
     const index = pageIndex ?? 1;
@@ -98,10 +111,16 @@ export class AppointmentService {
         whereOption.user_id = account.id;
         break;
       case 'doctor':
-        whereOption.OR = [
-          { department_id: account['department_id'], finished: false },
-          { doctor_id: account.id, finished: true },
-        ];
+        const { drole } = account as doctors & {
+          drole: doctor_roles;
+          role: role;
+        };
+        if (drole.name === 'specialis') {
+          whereOption.OR = [
+            { department_id: account['department_id'], finished: false },
+            { doctor_id: account.id, finished: true },
+          ];
+        }
         break;
       default:
         break;
@@ -109,12 +128,14 @@ export class AppointmentService {
 
     whereOption.time = dateFilter(startFrom, endAt);
 
-    if (!!external_code) {
-      whereOption.external_code = { contains: external_code };
-    }
-
-    if (!!name) {
-      whereOption.user = { full_name: { contains: name, mode: 'insensitive' } };
+    if (!!search_value) {
+      whereOption.OR = [
+        { external_code: { contains: search_value } },
+        { user: { phone: search_value } },
+        { user: { email: search_value } },
+        { user: { identity_number: search_value } },
+        { user: { social_insurance_number: search_value } },
+      ];
     }
 
     const [data, total] = await Promise.all([
@@ -125,6 +146,43 @@ export class AppointmentService {
         orderBy: { id: 'desc' },
       }),
       this.prisma.health_check_appointment.count({ where: whereOption }),
+    ]);
+
+    return {
+      data,
+      total,
+    };
+  }
+
+  async getAppointmentService(query: ListAppointmentQuery, doctor: doctors) {
+    const { endAt, search_value, pageIndex, pageSize, startFrom } = query;
+
+    const size = pageSize ?? 10;
+    const index = pageIndex ?? 1;
+
+    const whereOption: Prisma.use_serviceWhereInput = {
+      service_id: doctor.service_id,
+    };
+
+    whereOption.appointment.time = dateFilter(startFrom, endAt);
+
+    if (!!search_value) {
+      whereOption.OR = [
+        { appointment: { external_code: { contains: search_value } } },
+        { appointment: { user: { phone: search_value } } },
+        { appointment: { user: { email: search_value } } },
+        { appointment: { user: { identity_number: search_value } } },
+        { appointment: { user: { social_insurance_number: search_value } } },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.use_service.findMany({
+        where: whereOption,
+        skip: (index - 1) * size,
+        take: size,
+      }),
+      this.prisma.use_service.count({ where: whereOption }),
     ]);
 
     return {
@@ -154,6 +212,41 @@ export class AppointmentService {
     return result[0];
   }
 
+  async addServices(id: number, services: number[]) {
+    try {
+      const records = await this.prisma.hospital_services.findMany({
+        where: { id: { in: services } },
+      });
+
+      const appointment = await this.prisma.health_check_appointment.findUnique(
+        {
+          where: { id },
+        },
+      );
+      if (records.length === 0) {
+        throw new BadRequestException('Dịch vụ không hợp lệ');
+      }
+      if (!appointment) {
+        throw new NotFoundException('Không tìm thấy lịch khám');
+      }
+
+      const fee = records.reduce((pre: number, cur: hospital_services) => {
+        return pre + (cur.fee ?? 0);
+      }, 0);
+
+      await this.prisma.use_service.createMany({
+        data: records.map((r) => ({
+          appointment_id: id,
+          service_id: r.id,
+        })),
+      });
+
+      return fee;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async update(
     id: number,
     data: Prisma.XOR<
@@ -167,6 +260,29 @@ export class AppointmentService {
       return await this.prisma.health_check_appointment.update({
         where: { id },
         data: data,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateServiceResult(data: UpdateServiceResultDto, doctor: doctors) {
+    try {
+      const { result, appointment_id, service_id } = data;
+
+      if (doctor.service_id !== service_id) {
+        throw new BadRequestException('Dịch vụ không hỗ trợ');
+      }
+      return await this.prisma.use_service.update({
+        where: {
+          appointment_id_service_id: {
+            appointment_id,
+            service_id,
+          },
+        },
+        data: {
+          result,
+        },
       });
     } catch (error) {
       throw error;
