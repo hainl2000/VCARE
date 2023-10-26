@@ -6,7 +6,7 @@ import {
 import { PrismaService } from 'src/shared/prisma.service';
 import { CreateDoctorDto } from './doctor.dto';
 import { generateHashPass } from 'src/utils/_security';
-import { Prisma, hospitals } from '@prisma/client';
+import { Prisma, hospitals, doctor_roles } from '@prisma/client';
 import { accountWithRole } from 'src/constants/type';
 
 @Injectable()
@@ -37,7 +37,7 @@ export class DoctorService {
     try {
       const doctor = await this.prisma.doctors.findFirst({
         where: { OR: [{ phone: username }, { email: username }] },
-        include: { hospital: true },
+        include: { hospital: true, drole: true },
       });
 
       if (!doctor) {

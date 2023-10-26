@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, admins } from '@prisma/client';
+import { Prisma, admins, doctor_roles } from '@prisma/client';
 import {
   CreateHospitalDto,
   GetHospitalDoctors,
