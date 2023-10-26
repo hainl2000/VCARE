@@ -1,9 +1,19 @@
-import { Controller, Post, Get, Body, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Query,
+  Put,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { HospitalServiceService } from './hospital-service.service';
 import { AuthRole } from 'src/decorators/authorization.decorator';
 import {
   CreateHospitalServiceDto,
   HospitalServiceQuery,
+  UpdateHospitalServiceDto,
 } from './hospital-service.dto';
 import { Account } from 'src/decorators/account.decorator';
 import { hospitals } from '@prisma/client';
@@ -37,5 +47,15 @@ export class HospitalServiceController {
       query.hospital_id = account['id'];
     }
     return this.hospitalServiceService.findAll(query, account);
+  }
+
+  @AuthRole('hospital')
+  @Put(':id')
+  update(
+    @Param('id', ParseIntPipe) serviceId: number,
+    @Body() data: UpdateHospitalServiceDto,
+    @Account() hospital: hospitals,
+  ) {
+    return this.hospitalServiceService.update(serviceId, data, hospital);
   }
 }

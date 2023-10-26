@@ -4,7 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, admins } from '@prisma/client';
-import { CreateHospitalDto, ListHospitalQuery } from './hospital.dto';
+import {
+  CreateHospitalDto,
+  GetHospitalDoctors,
+  ListHospitalQuery,
+} from './hospital.dto';
 import { PrismaService } from 'src/shared/prisma.service';
 import { generateHashPass, getAccountSafeData } from 'src/utils';
 
@@ -113,6 +117,38 @@ export class HospitalService {
       }
 
       return getAccountSafeData(result);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getDoctors(query: GetHospitalDoctors) {
+    const { pageSize, pageIndex, hospital_id, name, role_id } = query;
+    const index = pageIndex ?? 1;
+    const size = pageSize ?? 10;
+    const whereOption: Prisma.doctorsWhereInput = { hospital_id };
+    if (!!name) {
+      whereOption.full_name = { contains: name, mode: 'insensitive' };
+    }
+
+    if (!!role_id) {
+      whereOption.role_id = role_id;
+    }
+    try {
+      const [data, total] = await Promise.all([
+        this.prisma.doctors.findMany({
+          where: whereOption,
+          skip: (index - 1) * size,
+          take: size,
+          orderBy: { id: 'desc' },
+        }),
+        this.prisma.doctors.count({ where: whereOption }),
+      ]);
+
+      return {
+        data: data.map((d) => getAccountSafeData(d)),
+        total,
+      };
     } catch (error) {
       throw error;
     }

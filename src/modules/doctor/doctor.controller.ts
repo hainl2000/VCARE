@@ -47,12 +47,15 @@ export class DoctorController {
     return this.doctorService.create(data, hospital);
   }
 
-  @AuthRole('hospital')
+  @AuthRole('hospital', 'doctor')
   @Put()
   updateDoctor(
     @Body() data: UpdateDoctorDto,
     @Account() account: accountWithRole,
   ) {
+    if (account.role === 'doctor') {
+      data.doctor_id = account.id;
+    }
     const { doctor_id, ...updateData } = data;
     return this.doctorService.update(
       data.doctor_id,

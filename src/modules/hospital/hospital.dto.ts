@@ -1,6 +1,8 @@
+import { Type } from 'class-transformer';
 import {
   IsDefined,
   IsEmail,
+  IsInt,
   IsOptional,
   IsString,
   Matches,
@@ -34,10 +36,49 @@ export class CreateHospitalDto {
   password: string;
 }
 
+export class UpdateHospitalDto {
+  @IsOptional()
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  address: string;
+
+  @IsDefined()
+  @IsString()
+  @MinLength(6)
+  information: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
+
+  @IsOptional()
+  @IsInt()
+  hospital_id?: number;
+}
+
 export class ListHospitalQuery extends ListDto {
   @IsOptional()
   @IsString()
   name?: string;
+}
+
+export class GetHospitalDoctors extends ListDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  hospital_id?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  role_id?: number;
 }
 
 export class HospitalDetail {}

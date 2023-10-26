@@ -83,6 +83,10 @@ export class CreateDoctorDto {
   @IsPositive()
   role_id?: number;
 
+  @IsOptional()
+  @IsString()
+  full_name?: string;
+
   @ApiProperty({
     description: 'mật khẩu',
     example: '123456',
@@ -103,6 +107,10 @@ export class UpdateDoctorDto {
   @IsOptional()
   @IsString()
   practicing_certificate_code?: string;
+
+  @IsOptional()
+  @IsString()
+  full_name?: string;
 
   @IsOptional()
   @IsString()
