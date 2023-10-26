@@ -10,6 +10,7 @@ import {
   HospitalServiceQuery,
   UpdateHospitalServiceDto,
 } from './hospital-service.dto';
+import { accountWithRole } from 'src/constants/type';
 
 @Injectable()
 export class HospitalServiceService {
@@ -61,9 +62,16 @@ export class HospitalServiceService {
     }
   }
 
-  async findAll(query: HospitalServiceQuery) {
+  async findAll(query: HospitalServiceQuery, account: accountWithRole) {
     try {
       const { name, pageIndex, pageSize, hospital_id } = query;
+      if (
+        (account.role === 'user' || account.role === 'admin') &&
+        !hospital_id
+      ) {
+        throw new BadRequestException('Thiếu thông tin bệnh viện');
+      }
+
       const whereOption: Prisma.hospital_servicesWhereInput = { hospital_id };
       const size = pageSize ?? 10;
       const index = pageIndex ?? 1;

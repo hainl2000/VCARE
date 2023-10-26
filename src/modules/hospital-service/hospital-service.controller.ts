@@ -7,6 +7,7 @@ import {
 } from './hospital-service.dto';
 import { Account } from 'src/decorators/account.decorator';
 import { hospitals } from '@prisma/client';
+import { accountWithRole } from 'src/constants/type';
 
 @Controller('hospital-service')
 export class HospitalServiceController {
@@ -25,7 +26,16 @@ export class HospitalServiceController {
 
   @AuthRole()
   @Get()
-  findAll(@Query() query: HospitalServiceQuery) {
-    return this.hospitalServiceService.findAll(query);
+  findAll(
+    @Query() query: HospitalServiceQuery,
+    @Account() account: accountWithRole,
+  ) {
+    if (account.role === 'doctor') {
+      query.hospital_id = account['hospital_id'];
+    }
+    if (account.role === 'hospital') {
+      query.hospital_id = account['id'];
+    }
+    return this.hospitalServiceService.findAll(query, account);
   }
 }

@@ -40,7 +40,7 @@ export class HospitalServiceQuery extends ListDto {
   @IsOptional()
   name?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
   @IsPositive()
   @Type(() => Number)
