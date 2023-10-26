@@ -1,10 +1,13 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  ParseIntPipe,
   Post,
   Put,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -18,9 +21,15 @@ import {
 import { hospitals } from '@prisma/client';
 import { Account } from 'src/decorators/account.decorator';
 import { AuthRole } from 'src/decorators/authorization.decorator';
-import { CreateDoctorDto, DoctorResponse, UpdateDoctorDto } from './doctor.dto';
+import {
+  CreateDoctorDto,
+  DoctorResponse,
+  GetDoctorDetail,
+  UpdateDoctorDto,
+} from './doctor.dto';
 import { DoctorService } from './doctor.service';
 import { accountWithRole } from 'src/constants/type';
+import { getAccountSafeData } from 'src/utils';
 
 @ApiTags('doctor')
 @ApiConsumes('application/json')
@@ -45,6 +54,18 @@ export class DoctorController {
   @Post()
   create(@Body() data: CreateDoctorDto, @Account() hospital: hospitals) {
     return this.doctorService.create(data, hospital);
+  }
+
+  @AuthRole()
+  @Get()
+  async detail(
+    @Query() { doctor_id }: GetDoctorDetail,
+    @Account() account: accountWithRole,
+  ) {
+    if (account.role === 'doctor') {
+      return getAccountSafeData(account);
+    }
+    return this.doctorService.findById(doctor_id);
   }
 
   @AuthRole('hospital', 'doctor')

@@ -11,6 +11,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { HospitalDetail } from '../hospital/hospital.dto';
+import { Type } from 'class-transformer';
 
 export class CreateDoctorDto {
   @ApiProperty({
@@ -178,4 +179,11 @@ export class DoctorResponse {
     example: '...',
   })
   hospital: HospitalDetail;
+}
+
+export class GetDoctorDetail {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  doctor_id: number;
 }
