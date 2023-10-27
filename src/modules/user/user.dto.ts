@@ -1,4 +1,6 @@
+import { BadRequestException } from '@nestjs/common';
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsDefined,
   IsEmail,
@@ -7,7 +9,10 @@ import {
   MinLength,
   IsOptional,
   IsBoolean,
+  IsDate,
 } from 'class-validator';
+import * as dayjs from 'dayjs';
+import { dateRegex } from 'src/constants/regex';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -75,8 +80,14 @@ export class UpdateUserDto {
   gender?: boolean;
 
   @IsOptional()
-  @IsString()
-  dob?: string;
+  @IsDate()
+  @Transform(({ value }) => {
+    if (typeof value !== 'string' || !value.match(dateRegex)) {
+      throw new BadRequestException('dob invalid');
+    }
+    return dayjs(value).toDate();
+  })
+  dob?: Date;
 
   @IsOptional()
   @IsString()
