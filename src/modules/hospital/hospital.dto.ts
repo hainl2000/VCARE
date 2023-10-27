@@ -45,9 +45,8 @@ export class UpdateHospitalDto {
   @IsString()
   address: string;
 
-  @IsDefined()
+  @IsOptional()
   @IsString()
-  @MinLength(6)
   information: string;
 
   @IsOptional()
