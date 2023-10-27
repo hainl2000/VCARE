@@ -15,6 +15,9 @@ export function getAccountSafeData(account: account) {
     if (accountPrivateField.includes(key)) {
       delete account[key];
     }
+    if (['image', 'avatar'].includes(key)) {
+      account[key] = process.env.URL_BUCKET + account[key];
+    }
   });
 
   return account;

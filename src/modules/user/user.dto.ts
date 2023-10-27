@@ -62,66 +62,30 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto {
-  @ApiProperty({
-    description: 'Họ và tên',
-    example: 'Trần Quốc Du',
-    required: false,
-  })
   @IsOptional()
   @IsString()
-  @MinLength(3)
   full_name?: string;
 
-  @ApiProperty({
-    description: 'avatar',
-    example: 'url',
-    required: false,
-  })
   @IsOptional()
   @IsString()
   avatar?: string;
 
-  @ApiProperty({
-    description: 'Giới tính',
-    example: true,
-    required: false,
-  })
   @IsOptional()
   @IsBoolean()
   gender?: boolean;
 
-  @ApiProperty({
-    description: 'Ngày sinh',
-    example: '2000-01-01',
-    required: false,
-  })
   @IsOptional()
   @IsString()
   dob?: string;
 
-  @ApiProperty({
-    description: 'CCCD/CMND',
-    example: '453465745345',
-    required: false,
-  })
   @IsOptional()
   @IsString()
   identity_number?: string;
 
-  @ApiProperty({
-    description: 'Số bảo hiểm',
-    example: '43546436436',
-    required: false,
-  })
   @IsOptional()
   @IsString()
   social_insurance_number?: string;
 
-  @ApiProperty({
-    description: 'Địa chỉ',
-    example: '30 Bạch Mai, Hai Bà Trưng, Hà Nội',
-    required: false,
-  })
   @IsOptional()
   @IsString()
   address?: string;
