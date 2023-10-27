@@ -16,6 +16,8 @@ export function getAccountSafeData(account: account) {
       delete account[key];
     }
     if (['image', 'avatar'].includes(key)) {
+      console.log(key, account[key]);
+
       account[key] = process.env.URL_BUCKET + account[key];
     }
   });
