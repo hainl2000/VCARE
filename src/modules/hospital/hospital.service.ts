@@ -66,6 +66,8 @@ export class HospitalService {
       Prisma.hospitalsUncheckedUpdateInput
     >,
   ) {
+    console.log(id, data);
+
     try {
       return await this.prisma.hospitals.update({
         where: { id },
