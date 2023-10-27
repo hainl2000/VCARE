@@ -15,6 +15,9 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     const err = exception.getResponse();
     const message =
       typeof err['message'] === 'string' ? [err['message']] : err['message'];
+    if (status >= 500) {
+      console.log(exception);
+    }
     response.status(status).json({
       stastatusCode: status,
       message,
