@@ -54,16 +54,20 @@ export class AppointmentService {
         updateUserData[key] = checkData[key];
       }
     });
-    const patient_information = {};
+    const patient_information = {
+      full_name: user.full_name,
+      identity_number: user.identity_number,
+      social_insurance_number: user.social_insurance_number,
+      phone: user.phone,
+      email: user.email,
+    };
 
     if (Object.keys(updateUserData).length > 0) {
       const update = await this.userService.update(user, updateUserData);
-      patient_information['full_name'] = update['full_name'];
-      patient_information['identity_number'] = update['identity_number'];
-      patient_information['social_insurance_number'] =
+      patient_information.identity_number = update['identity_number'];
+      patient_information.social_insurance_number =
         update['social_insurance_number'];
-      patient_information['phone'] = update['phone'];
-      patient_information['email'] = update['email'];
+      patient_information.full_name = update['full_name'];
     }
 
     return await this.prisma.health_check_appointment.create({
