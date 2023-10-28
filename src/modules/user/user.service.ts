@@ -54,15 +54,18 @@ export class UserService {
     }
   }
 
-  async findByUniq(data: {
-    phone?: string;
-    email?: string;
-    identity_number?: string;
-    social_insurance_number?: string;
-  }) {
+  async findByUniq(
+    data: {
+      phone?: string;
+      email?: string;
+      identity_number?: string;
+      social_insurance_number?: string;
+    },
+    ignore?: number,
+  ) {
     try {
       const { identity_number, social_insurance_number, phone, email } = data;
-      if ((!identity_number && !social_insurance_number && !phone) || !email) {
+      if (!identity_number && !social_insurance_number && !phone && !email) {
         return null;
       }
       const whereOption: Prisma.usersWhereInput[] = [];
@@ -81,9 +84,11 @@ export class UserService {
       if (!!social_insurance_number) {
         whereOption.push({ social_insurance_number });
       }
+
       const user = await this.prisma.users.findFirst({
         where: {
           OR: whereOption,
+          id: { not: ignore ?? 0 },
         },
       });
 
@@ -114,12 +119,15 @@ export class UserService {
     );
 
     if (log['social_insurance_number'] || log['identity_number']) {
-      const existed = await this.findByUniq({
-        social_insurance_number: data.social_insurance_number as string,
-        identity_number: data.identity_number as string,
-      });
+      const existed = await this.findByUniq(
+        {
+          social_insurance_number: data.social_insurance_number as string,
+          identity_number: data.identity_number as string,
+        },
+        user.id,
+      );
 
-      if (existed && existed.id !== user.id) {
+      if (existed) {
         throw new BadRequestException('Trùng lặp thông tin');
       }
     }
