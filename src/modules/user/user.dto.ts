@@ -15,54 +15,25 @@ import * as dayjs from 'dayjs';
 import { dateRegex } from 'src/constants/regex';
 
 export class CreateUserDto {
-  @ApiProperty({
-    description: 'email',
-    example: 'test@gmail.com',
-    required: true,
-  })
   @IsDefined()
   @IsEmail()
   email: string;
 
-  @ApiProperty({
-    description: 'sđt',
-    example: '0978534375',
-    required: true,
-  })
   @IsDefined()
   @Matches(/(0[3|5|7|8|9])+([0-9]{8})\b/g, {
     message: 'phone must be a valid number',
   })
   phone: string;
 
-  @ApiProperty({
-    description: 'bảo hiểm xã hội',
-    example: '454534583495',
-    required: false,
-  })
   @IsOptional()
   @IsString()
-  @MinLength(10)
   social_insurance_number: string;
 
-  @ApiProperty({
-    description: 'căn cước công dân/chứng minh nhân dân',
-    example: '030045744985',
-    required: false,
-  })
   @IsOptional()
   @IsString()
-  @MinLength(10)
   identity_number: string;
-
-  @ApiProperty({
-    description: 'mật khẩu',
-    example: '0978534375',
-    required: true,
-  })
   @IsDefined()
   @IsString()
-  @MinLength(6)
   password: string;
 }
 
