@@ -15,6 +15,7 @@ import { Account } from 'src/decorators/account.decorator';
 import { AuthRole } from 'src/decorators/authorization.decorator';
 import {
   CreateAppointmentDto,
+  GetAppointmentDetailQuery,
   ListAppointmentQuery,
   UpdateAppointmentDto,
   UpdateServiceResultDto,
@@ -48,9 +49,12 @@ export class AppointmentController {
   }
 
   @AuthRole()
-  @Get('detail/:data')
-  getDetail(@Param('data') data: string, @Account() account: accountWithRole) {
-    return this.appointmentService.getDetail(data);
+  @Get('detail/:id')
+  getDetail(
+    @Param('id', ParseIntPipe) appointmentId: number,
+    @Account() account: accountWithRole,
+  ) {
+    return this.appointmentService.getDetail(appointmentId, account);
   }
 
   @AuthRole('doctor')

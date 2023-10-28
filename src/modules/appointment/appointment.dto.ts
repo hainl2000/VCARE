@@ -96,3 +96,9 @@ export class UpdateServiceResultDto {
   @IsPositive()
   service_id: number;
 }
+
+export class GetAppointmentDetailQuery {
+  @IsOptional()
+  @IsString()
+  data?: string;
+}

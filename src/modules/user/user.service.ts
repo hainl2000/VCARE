@@ -72,9 +72,13 @@ export class UserService {
         time: dayjs().valueOf(),
       },
     );
+    console.log(log);
+
     if (Object.keys(log).length > 1) {
-      data.change_history = (user.change_history as Prisma.JsonArray).push(log);
+      data.change_history = user.change_history as Prisma.JsonArray;
+      data.change_history = [...data.change_history, log];
     }
+
     try {
       const result = await this.prisma.users.update({
         where: { id: user.id },

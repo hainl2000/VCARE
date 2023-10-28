@@ -6,6 +6,7 @@ import {
 import { PrismaService } from 'src/shared/prisma.service';
 import {
   CreateAppointmentDto,
+  GetAppointmentDetailQuery,
   ListAppointmentQuery,
   UpdateServiceResultDto,
 } from './appointment.dto';
@@ -53,9 +54,16 @@ export class AppointmentService {
         updateUserData[key] = checkData[key];
       }
     });
+    const patient_information = {};
 
     if (Object.keys(updateUserData).length > 0) {
-      await this.userService.update(user, updateUserData);
+      const update = await this.userService.update(user, updateUserData);
+      patient_information['full_name'] = update['full_name'];
+      patient_information['identity_number'] = update['identity_number'];
+      patient_information['social_insurance_number'] =
+        update['social_insurance_number'];
+      patient_information['phone'] = update['phone'];
+      patient_information['email'] = update['email'];
     }
 
     return await this.prisma.health_check_appointment.create({
@@ -66,6 +74,7 @@ export class AppointmentService {
         department_id,
         hospital_id,
         user_id: user.id,
+        patient_information,
       },
     });
   }
@@ -191,25 +200,35 @@ export class AppointmentService {
     };
   }
 
-  async getDetail(data: string) {
-    const whereOption: Prisma.health_check_appointmentWhereInput = {
-      OR: [
-        { external_code: data },
-        { user: { identity_number: data } },
-        { user: { social_insurance_number: data } },
-      ],
-    };
+  async findById(id: number) {
+    return await this.prisma.health_check_appointment.findUnique({
+      where: { id },
+      include: { services: { include: { service: true } } },
+    });
+  }
 
-    if (Number.isInteger(+data)) {
-      whereOption.OR = [...whereOption.OR, { id: +data }];
+  async getDetail(appointmentId: number, account: accountWithRole) {
+    const appointment = await this.findById(appointmentId);
+
+    if (!appointment) {
+      throw new NotFoundException('Không tìm thấy lịch khám');
+    }
+    if (account.role === 'user' && appointment.user_id !== account.id) {
+      throw new NotFoundException('Không thể truy cập tài nguyên');
     }
 
-    const result = await this.prisma.health_check_appointment.findMany({
-      where: whereOption,
-      orderBy: { id: 'desc' },
-    });
+    if (account.role === 'hospital' && appointment.hospital_id !== account.id) {
+      throw new NotFoundException('Không thể truy cập tài nguyên');
+    }
 
-    return result[0];
+    if (
+      account.role === 'doctor' &&
+      appointment.hospital_id !== account['hospital_id']
+    ) {
+      throw new NotFoundException('Không thể truy cập tài nguyên');
+    }
+
+    return appointment;
   }
 
   async addServices(id: number, services: number[]) {

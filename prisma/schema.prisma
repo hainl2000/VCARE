@@ -158,27 +158,28 @@ model hospitals {
 }
 
 model health_check_appointment {
-  id                 Int                 @id @default(autoincrement())
-  hospital_id        Int
-  department_id      Int
-  user_id            Int
-  doctor_id          Int?
-  external_code      String              @unique @default(dbgenerated("nanoid()")) @db.VarChar()
-  medical_condition  String
-  time               DateTime
-  time_in_string     String
-  finished           Boolean             @default(false)
-  conclude           Json?               @db.JsonB
-  note               String?
-  medicine           Json?               @db.JsonB
-  fee                Float?
-  fee_paid           Boolean             @default(false)
-  user               users               @relation(fields: [user_id], references: [id])
-  doctor             doctors?            @relation(fields: [doctor_id], references: [id])
-  hospital           hospitals           @relation(fields: [hospital_id], references: [id])
-  department         hospital_department @relation(fields: [department_id], references: [id])
-  wallet_transaction wallet_transaction?
-  services           use_service[]
+  id                  Int                 @id @default(autoincrement())
+  hospital_id         Int
+  department_id       Int
+  user_id             Int
+  doctor_id           Int?
+  external_code       String              @unique @default(dbgenerated("nanoid()")) @db.VarChar()
+  patient_information Json?               @db.JsonB
+  medical_condition   String
+  time                DateTime
+  time_in_string      String
+  finished            Boolean             @default(false)
+  conclude            Json?               @db.JsonB
+  note                String?
+  medicine            Json?               @db.JsonB
+  fee                 Float?
+  fee_paid            Boolean             @default(false)
+  user                users               @relation(fields: [user_id], references: [id])
+  doctor              doctors?            @relation(fields: [doctor_id], references: [id])
+  hospital            hospitals           @relation(fields: [hospital_id], references: [id])
+  department          hospital_department @relation(fields: [department_id], references: [id])
+  wallet_transaction  wallet_transaction?
+  services            use_service[]
 }
 
 model use_service {
