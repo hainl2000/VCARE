@@ -13,6 +13,7 @@ import {
   userField,
 } from 'src/constants/type';
 import * as dayjs from 'dayjs';
+import { identity, throwError } from 'rxjs';
 
 @Injectable()
 export class UserService {
@@ -53,6 +54,45 @@ export class UserService {
     }
   }
 
+  async findByUniq(data: {
+    phone?: string;
+    email?: string;
+    identity_number?: string;
+    social_insurance_number?: string;
+  }) {
+    try {
+      const { identity_number, social_insurance_number, phone, email } = data;
+      if ((!identity_number && !social_insurance_number && !phone) || !email) {
+        return null;
+      }
+      const whereOption: Prisma.usersWhereInput[] = [];
+      if (!!identity_number) {
+        whereOption.push({ identity_number });
+      }
+
+      if (!!phone) {
+        whereOption.push({ phone });
+      }
+
+      if (!!email) {
+        whereOption.push({ email });
+      }
+
+      if (!!social_insurance_number) {
+        whereOption.push({ social_insurance_number });
+      }
+      const user = await this.prisma.users.findFirst({
+        where: {
+          OR: whereOption,
+        },
+      });
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async update(
     target: users | number,
     data: Prisma.XOR<Prisma.usersUpdateInput, Prisma.usersUncheckedUpdateInput>,
@@ -72,7 +112,17 @@ export class UserService {
         time: dayjs().valueOf(),
       },
     );
-    console.log(log);
+
+    if (log['social_insurance_number'] || log['identity_number']) {
+      const existed = await this.findByUniq({
+        social_insurance_number: data.social_insurance_number as string,
+        identity_number: data.identity_number as string,
+      });
+
+      if (existed && existed.id !== user.id) {
+        throw new BadRequestException('Trùng lặp thông tin');
+      }
+    }
 
     if (Object.keys(log).length > 1) {
       data.change_history = user.change_history as Prisma.JsonArray;
