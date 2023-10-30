@@ -209,7 +209,11 @@ export class AppointmentService {
       where: { id },
       include: {
         services: { include: { service: true } },
-        hospital: true,
+        hospital: {
+          include: {
+            hospital_department: true
+          }
+        },
         doctor: true,
       },
     });
