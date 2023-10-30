@@ -207,7 +207,11 @@ export class AppointmentService {
   async findById(id: number) {
     return await this.prisma.health_check_appointment.findUnique({
       where: { id },
-      include: { services: { include: { service: true } } },
+      include: {
+        services: { include: { service: true } },
+        hospital: true,
+        doctor: true,
+      },
     });
   }
 
