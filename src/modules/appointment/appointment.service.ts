@@ -155,6 +155,10 @@ export class AppointmentService {
       this.prisma.health_check_appointment.findMany({
         where: whereOption,
         skip: (index - 1) * size,
+        include: {
+          hospital: { select: { name: true, image: true, information: true } },
+          department: { select: { name: true } },
+        },
         take: size,
         orderBy: { id: 'desc' },
       }),
@@ -211,8 +215,8 @@ export class AppointmentService {
         services: { include: { service: true } },
         hospital: {
           include: {
-            hospital_department: true
-          }
+            hospital_department: true,
+          },
         },
         doctor: true,
       },
