@@ -23,6 +23,9 @@ export function getAccountSafeData(account: account) {
 }
 
 export function convertDate(target: any) {
+  if (target === null) {
+    return null;
+  }
   if (typeof target === 'string' && ISODateRegex.test(target)) {
     return target.split('.')[0].replace('T', ' ');
   }
@@ -31,7 +34,7 @@ export function convertDate(target: any) {
       for (let i = 0; i < target.length; i++) {
         target[i] = convertDate(target[i]);
       }
-    } else if (typeof target.getMonth === 'function') {
+    } else if (typeof target?.getMonth === 'function') {
       target = dayjs(target).format('YYYY-MM-DD HH:mm:ss');
     } else {
       Object.keys(target).forEach((key) => {
