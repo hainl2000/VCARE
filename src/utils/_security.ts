@@ -1,6 +1,6 @@
 import { genSaltSync, compareSync, hashSync } from 'bcrypt';
 import * as dayjs from 'dayjs';
-import { ISODateRegex } from 'src/constants/regex';
+import { ISODateRegex, dateRegex } from 'src/constants/regex';
 import { account, accountField, accountPrivateField } from 'src/constants/type';
 const saltRound = 11;
 export function generateHashPass(password: string) {
@@ -26,8 +26,11 @@ export function convertDate(target: any) {
   if (target === null) {
     return null;
   }
-  if (typeof target === 'string' && ISODateRegex.test(target)) {
-    return target.split('.')[0].replace('T', ' ');
+  if (
+    typeof target === 'string' &&
+    (ISODateRegex.test(target) || dateRegex.test(target))
+  ) {
+    return target.substring(0, 10);
   }
   if (typeof target === 'object') {
     if (Array.isArray(target)) {
@@ -35,7 +38,7 @@ export function convertDate(target: any) {
         target[i] = convertDate(target[i]);
       }
     } else if (typeof target?.getMonth === 'function') {
-      target = dayjs(target).format('YYYY-MM-DD HH:mm:ss');
+      target = dayjs(target).format('YYYY-MM-DD');
     } else {
       Object.keys(target).forEach((key) => {
         target[key] = convertDate(target[key]);
