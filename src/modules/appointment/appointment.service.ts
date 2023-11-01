@@ -214,8 +214,13 @@ export class AppointmentService {
       include: {
         services: { include: { service: true } },
         hospital: {
-          include: {
-            hospital_department: true,
+          select: {
+            name: true,
+          },
+        },
+        department: {
+          select: {
+            name: true,
           },
         },
         doctor: true,
