@@ -97,6 +97,9 @@ export class CreateDoctorDto {
   @IsString()
   @MinLength(6)
   password: string;
+  @IsOptional()
+  @IsString()
+  avatar?: string;
 }
 
 export class UpdateDoctorDto {
