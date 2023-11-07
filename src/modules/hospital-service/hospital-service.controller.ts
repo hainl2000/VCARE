@@ -12,12 +12,16 @@ import { HospitalServiceService } from './hospital-service.service';
 import { AuthRole } from 'src/decorators/authorization.decorator';
 import {
   CreateHospitalServiceDto,
+  CreateMedicalServiceDto,
   HospitalServiceQuery,
+  MedicalServiceQuery,
   UpdateHospitalServiceDto,
+  UpdateMedicalServiceDto,
 } from './hospital-service.dto';
 import { Account } from 'src/decorators/account.decorator';
 import { hospitals } from '@prisma/client';
 import { accountWithRole } from 'src/constants/type';
+import { ListDto } from 'src/constants/class';
 
 @Controller('hospital-service')
 export class HospitalServiceController {
@@ -50,6 +54,12 @@ export class HospitalServiceController {
   }
 
   @AuthRole('hospital')
+  @Post('medical-service')
+  createMedicalService(@Body() data: CreateMedicalServiceDto) {
+    return this.hospitalServiceService.createMedicalService(data);
+  }
+
+  @AuthRole('hospital')
   @Put(':id')
   update(
     @Param('id', ParseIntPipe) serviceId: number,
@@ -57,5 +67,23 @@ export class HospitalServiceController {
     @Account() hospital: hospitals,
   ) {
     return this.hospitalServiceService.update(serviceId, data, hospital);
+  }
+
+  @AuthRole('hospital', 'doctor')
+  @Get('list')
+  findMedicalServices(
+    @Query() query: MedicalServiceQuery,
+    @Account() account: accountWithRole,
+  ) {
+    return this.hospitalServiceService.findMedicalServices(query, account);
+  }
+
+  @AuthRole('hospital')
+  @Post('medical-service/update')
+  updateMedicalService(
+    @Body() data: UpdateMedicalServiceDto,
+    @Account() account: accountWithRole,
+  ) {
+    return this.hospitalServiceService.updateMedicalService(data, account);
   }
 }

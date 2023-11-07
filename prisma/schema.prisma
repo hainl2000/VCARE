@@ -98,16 +98,24 @@ model doctors {
 }
 
 model hospital_services {
-  id          Int           @id @default(autoincrement())
-  hospital    hospitals     @relation(fields: [hospital_id], references: [id])
+  id          Int                @id @default(autoincrement())
+  hospital    hospitals          @relation(fields: [hospital_id], references: [id])
   hospital_id Int
   name        String
-  fee         Float?
-  template    Json?         @default("{}") @db.JsonB
-  use_service use_service[]
   doctors     doctors[]
+  services    medical_services[]
 
   @@unique([name, hospital_id])
+}
+
+model medical_services {
+  id          Int               @id @default(autoincrement())
+  service     hospital_services @relation(fields: [service_id], references: [id])
+  service_id  Int
+  name        String
+  fee         Float?
+  room        String?
+  use_service use_service[]
 }
 
 model admins {
@@ -186,13 +194,13 @@ model use_service {
   appointment    health_check_appointment @relation(fields: [appointment_id], references: [id])
   appointment_id Int
 
-  service    hospital_services @relation(fields: [service_id], references: [id])
+  service    medical_services @relation(fields: [service_id], references: [id])
   service_id Int
 
   doctor    doctors? @relation(fields: [doctor_id], references: [id])
   doctor_id Int?
 
-  result Json @default("{}") @db.JsonB
+  result_image String?
 
   @@id([appointment_id, service_id])
 }

@@ -7,10 +7,13 @@ import { Prisma, hospitals } from '@prisma/client';
 import { PrismaService } from 'src/shared/prisma.service';
 import {
   CreateHospitalServiceDto,
+  CreateMedicalServiceDto,
   HospitalServiceQuery,
+  MedicalServiceQuery,
   UpdateHospitalServiceDto,
+  UpdateMedicalServiceDto,
 } from './hospital-service.dto';
-import { accountWithRole } from 'src/constants/type';
+import { accountWithRole, accountField } from 'src/constants/type';
 
 @Injectable()
 export class HospitalServiceService {
@@ -90,5 +93,74 @@ export class HospitalServiceService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async createMedicalService(data: CreateMedicalServiceDto) {
+    try {
+      return await this.prismaService.medical_services.create({
+        data,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findMedicalServices(
+    query: MedicalServiceQuery,
+    account: accountWithRole,
+  ) {
+    const { name, pageIndex, pageSize } = query;
+    const whereOption: Prisma.medical_servicesWhereInput = {};
+    if (account.role === 'hospital') {
+      whereOption.service.hospital_id = account.id;
+    }
+
+    if (account.role === 'doctor') {
+      whereOption.service.hospital_id = account['hospital_id'];
+    }
+
+    if (!!name) {
+      whereOption.name = { contains: name, mode: 'insensitive' };
+    }
+    const size = pageSize ?? 10;
+    const index = pageIndex ?? 1;
+
+    const [data, total] = await Promise.all([
+      this.prismaService.medical_services.findMany({
+        where: whereOption,
+        skip: (index - 1) * size,
+        take: size,
+      }),
+      this.prismaService.medical_services.count({ where: whereOption }),
+    ]);
+
+    return { data, total };
+  }
+
+  async updateMedicalService(
+    data: UpdateMedicalServiceDto,
+    account: accountWithRole,
+  ) {
+    try {
+      const service = await this.prismaService.medical_services.findUnique({
+        where: { id: data.id },
+        include: { service: true },
+      });
+
+      if (!service) {
+        throw new NotFoundException('Không tìm thấy dịch vụ');
+      }
+
+      if (service.service.hospital_id !== account.id) {
+        throw new BadRequestException('Không thể cập nhật');
+      }
+
+      delete data.id;
+
+      return await this.prismaService.medical_services.update({
+        where: { id: service.id },
+        data,
+      });
+    } catch (error) {}
   }
 }

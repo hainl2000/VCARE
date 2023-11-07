@@ -9,6 +9,7 @@ import {
   IsString,
 } from 'class-validator';
 import { ListDto } from 'src/constants/class';
+import { isStringObject } from 'util/types';
 
 export class CreateHospitalServiceDto {
   @IsDefined()
@@ -27,13 +28,6 @@ export class UpdateHospitalServiceDto {
   @IsOptional()
   @IsString()
   name: string;
-
-  @IsOptional()
-  @IsObject()
-  template?: Record<string, any>;
-
-  @IsOptional()
-  fee?: number;
 }
 
 export class HospitalServiceQuery extends ListDto {
@@ -45,4 +39,45 @@ export class HospitalServiceQuery extends ListDto {
   @IsPositive()
   @Type(() => Number)
   hospital_id: number;
+}
+
+export class CreateMedicalServiceDto {
+  @IsNotEmpty()
+  @IsInt()
+  service_id: number;
+
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsPositive()
+  fee?: number;
+
+  @IsOptional()
+  @IsString()
+  room?: string;
+}
+
+export class UpdateMedicalServiceDto {
+  @IsNotEmpty()
+  @IsInt()
+  id: number;
+
+  @IsOptional()
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsPositive()
+  fee?: number;
+
+  @IsOptional()
+  @IsString()
+  room?: string;
+}
+
+export class MedicalServiceQuery extends ListDto {
+  @IsOptional()
+  name?: string;
 }

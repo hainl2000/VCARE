@@ -15,6 +15,7 @@ import {
   doctor_roles,
   doctors,
   hospital_services,
+  medical_services,
   users,
 } from '@prisma/client';
 import * as dayjs from 'dayjs';
@@ -254,7 +255,7 @@ export class AppointmentService {
 
   async addServices(id: number, services: number[]) {
     try {
-      const records = await this.prisma.hospital_services.findMany({
+      const records = await this.prisma.medical_services.findMany({
         where: { id: { in: services } },
       });
 
@@ -270,7 +271,7 @@ export class AppointmentService {
         throw new NotFoundException('Không tìm thấy lịch khám');
       }
 
-      const fee = records.reduce((pre: number, cur: hospital_services) => {
+      const fee = records.reduce((pre: number, cur: medical_services) => {
         return pre + (cur.fee ?? 0);
       }, 0);
 
@@ -308,9 +309,11 @@ export class AppointmentService {
 
   async updateServiceResult(data: UpdateServiceResultDto, doctor: doctors) {
     try {
-      const { result, appointment_id, service_id } = data;
-
-      if (doctor.service_id !== service_id) {
+      const { appointment_id, service_id, result_image } = data;
+      const service = await this.prisma.medical_services.findUnique({
+        where: { id: service_id },
+      });
+      if (doctor.service_id !== service.service_id) {
         throw new BadRequestException('Dịch vụ không hỗ trợ');
       }
       return await this.prisma.use_service.update({
@@ -321,7 +324,7 @@ export class AppointmentService {
           },
         },
         data: {
-          result,
+          result_image,
         },
       });
     } catch (error) {

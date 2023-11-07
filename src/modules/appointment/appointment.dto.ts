@@ -83,10 +83,6 @@ export class UpdateAppointmentDto {
 
 export class UpdateServiceResultDto {
   @IsNotEmpty()
-  @IsObject()
-  result: Record<string, any>;
-
-  @IsNotEmpty()
   @IsInt()
   @IsPositive()
   appointment_id: number;
@@ -95,6 +91,10 @@ export class UpdateServiceResultDto {
   @IsInt()
   @IsPositive()
   service_id: number;
+
+  @IsNotEmpty()
+  @IsString()
+  result_image: string;
 }
 
 export class GetAppointmentDetailQuery {
