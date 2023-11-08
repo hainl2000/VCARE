@@ -157,6 +157,7 @@ model hospitals {
   security_key             String?
   created_by_id            Int
   created_at               DateTime                   @default(now())
+  work_time                Json?                      @default("[]") @db.JsonB
   doctors                  doctors[]
   change_history           Json                       @default("[]") @db.JsonB
   created_by               admins                     @relation(fields: [created_by_id], references: [id])

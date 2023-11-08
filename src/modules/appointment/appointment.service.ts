@@ -8,6 +8,7 @@ import {
   CreateAppointmentDto,
   GetAppointmentDetailQuery,
   ListAppointmentQuery,
+  PatientHistoryQuery,
   UpdateServiceResultDto,
 } from './appointment.dto';
 import {
@@ -21,7 +22,7 @@ import {
 import * as dayjs from 'dayjs';
 import { account, accountWithRole, role, userField } from 'src/constants/type';
 import { UserService } from '../user/user.service';
-import { dateFilter } from 'src/utils';
+import { dateFilter, getAccountSafeData } from 'src/utils';
 
 @Injectable()
 export class AppointmentService {
@@ -230,7 +231,10 @@ export class AppointmentService {
   }
 
   async getDetail(appointmentId: number, account: accountWithRole) {
-    const appointment = await this.findById(appointmentId);
+    const appointment = await this.prisma.health_check_appointment.findUnique({
+      where: { id: appointmentId },
+      include: { services: { include: { doctor: true, service: true } } },
+    });
 
     if (!appointment) {
       throw new NotFoundException('Không tìm thấy lịch khám');
@@ -250,7 +254,17 @@ export class AppointmentService {
       throw new NotFoundException('Không thể truy cập tài nguyên');
     }
 
-    return appointment;
+    return {
+      ...appointment,
+      services: appointment.services.map((item) => ({
+        doctor: getAccountSafeData(item.doctor),
+        service: item.service.name,
+        image: {
+          label: 'Kết quả' + item.service.name,
+          url: item.result_image,
+        },
+      })),
+    };
   }
 
   async addServices(id: number, services: number[]) {
@@ -330,5 +344,58 @@ export class AppointmentService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getPatientHistory(
+    query: PatientHistoryQuery,
+    account: accountWithRole,
+  ) {
+    const { patientId, pageIndex, pageSize } = query;
+    const whereOption: Prisma.health_check_appointmentWhereInput = {
+      finished: true,
+    };
+
+    if (account.role === 'doctor') {
+      whereOption.department_id = account['department_id'];
+    }
+
+    if (account.role === 'hospital') {
+      whereOption.hospital_id = account['id'];
+    }
+
+    if (account.role === 'user') {
+      whereOption.user_id = account.id;
+    }
+
+    if (!!patientId && !whereOption.user_id) {
+      whereOption.user_id = patientId;
+      whereOption.finished = undefined;
+    }
+    const index = pageIndex ?? 1;
+    const size = pageSize || 10;
+    const [data, total] = await Promise.all([
+      this.prisma.health_check_appointment.findMany({
+        where: whereOption,
+        orderBy: { id: 'desc' },
+        include: { doctor: true, services: true },
+        skip: (index - 1) * size,
+        take: size,
+      }),
+      this.prisma.health_check_appointment.count({ where: whereOption }),
+    ]);
+
+    return {
+      total,
+      data: data.map((item) => ({
+        id: item.id,
+        doctor: getAccountSafeData(item.doctor),
+        patient_information: item.patient_information,
+        medical_condition: item.medical_condition,
+        conclude: item.conclude,
+        note: item.note,
+        medicine: item.medicine,
+        fee: item.fee,
+      })),
+    };
   }
 }
