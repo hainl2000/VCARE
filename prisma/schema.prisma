@@ -201,7 +201,7 @@ model use_service {
   doctor    doctors? @relation(fields: [doctor_id], references: [id])
   doctor_id Int?
 
-  result_image String?
+  result_image String[]
 
   @@id([appointment_id, service_id])
 }

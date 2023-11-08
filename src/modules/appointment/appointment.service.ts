@@ -256,14 +256,12 @@ export class AppointmentService {
 
     return {
       ...appointment,
-      services: appointment.services.map((item) => ({
-        doctor: getAccountSafeData(item.doctor),
-        service: item.service.name,
-        image: {
-          label: 'Kết quả' + item.service.name,
-          url: item.result_image,
-        },
-      })),
+      services_result: appointment.services.flatMap((item) => {
+        return item.result_image.map((img) => ({
+          label: 'Kết quả ' + item.service.name,
+          url: img,
+        }));
+      }),
     };
   }
 

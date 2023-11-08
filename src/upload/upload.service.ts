@@ -30,25 +30,29 @@ export class UploadService implements OnApplicationBootstrap {
       blobStream.on('finish', async () => {
         console.log('upload gs success: ', fileName);
       });
-      blobStream.on('error', async () => {
+      blobStream.on('error', async (err) => {
         blobStream.end(file.buffer);
-        console.log('upload gs Error: ', fileName);
+        console.log('upload gs Error: ', fileName, err);
       });
       if (file instanceof Buffer) {
         return blobStream.end(file);
       }
       blobStream.end(file.buffer || file);
     } catch (err) {
-      throw new BadRequestException('Không thể tải ảnh lên');
+      throw err;
     }
   }
 
   async upload(file: Express.Multer.File, fileName: string) {
-    await this.uploadGoogleStorage(file, fileName);
+    try {
+      await this.uploadGoogleStorage(file, fileName);
 
-    return {
-      url: this.bucketUrl + fileName,
-      fileName,
-    };
+      return {
+        url: this.bucketUrl + fileName,
+        fileName,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

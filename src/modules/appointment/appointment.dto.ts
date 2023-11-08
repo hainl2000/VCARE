@@ -100,8 +100,8 @@ export class UpdateServiceResultDto {
   service_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  result_image: string;
+  @IsString({ each: true })
+  result_image: string[];
 }
 
 export class GetAppointmentDetailQuery {
