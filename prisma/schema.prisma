@@ -46,6 +46,7 @@ model wallet {
   id      String               @id @default(dbgenerated("nanoid()")) @db.VarChar()
   user_id Int                  @unique
   remain  Float                @default(5000000)
+  version Int?
   user    users                @relation(fields: [user_id], references: [id])
   log     wallet_transaction[]
 }

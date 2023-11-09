@@ -60,11 +60,11 @@ export function convertImage(target: any) {
   if (typeof target === 'object') {
     if (Array.isArray(target)) {
       for (let i = 0; i < target.length; i++) {
-        target[i] = convertDate(target[i]);
+        target[i] = convertImage(target[i]);
       }
     } else if (typeof target?.getMonth !== 'function') {
       Object.keys(target).forEach((key) => {
-        target[key] = convertDate(target[key]);
+        target[key] = convertImage(target[key]);
       });
     }
     return target;
