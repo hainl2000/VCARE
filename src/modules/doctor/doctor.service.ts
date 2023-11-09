@@ -37,7 +37,7 @@ export class DoctorService {
     try {
       const doctor = await this.prisma.doctors.findFirst({
         where: { OR: [{ phone: username }, { email: username }] },
-        include: { hospital: true, drole: true },
+        include: { hospital: true, drole: true, service: true },
       });
 
       if (!doctor) {
