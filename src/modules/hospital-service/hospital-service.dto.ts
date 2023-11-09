@@ -80,4 +80,10 @@ export class UpdateMedicalServiceDto {
 export class MedicalServiceQuery extends ListDto {
   @IsOptional()
   name?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  serviceId?: number;
 }

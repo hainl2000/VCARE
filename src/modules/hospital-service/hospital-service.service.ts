@@ -109,7 +109,7 @@ export class HospitalServiceService {
     query: MedicalServiceQuery,
     account: accountWithRole,
   ) {
-    const { name, pageIndex, pageSize } = query;
+    const { name, pageIndex, pageSize, serviceId } = query;
     const whereOption: Prisma.medical_servicesWhereInput = {};
     if (account.role === 'hospital') {
       whereOption.service.hospital_id = account.id;
@@ -119,6 +119,9 @@ export class HospitalServiceService {
       whereOption.service.hospital_id = account['hospital_id'];
     }
 
+    if (!!serviceId) {
+      whereOption.service_id = serviceId;
+    }
     if (!!name) {
       whereOption.name = { contains: name, mode: 'insensitive' };
     }
