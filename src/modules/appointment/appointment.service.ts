@@ -401,7 +401,9 @@ export class AppointmentService {
   async searchAppointment(query: SearchAppointDto, doctor: doctors) {
     try {
       const { search_value } = query;
-      const whereOption: Prisma.health_check_appointmentWhereInput = {};
+      const whereOption: Prisma.health_check_appointmentWhereInput = {
+        services: { some: { service: { service_id: doctor.service_id } } },
+      };
       if (!!search_value) {
         whereOption.OR = [
           { external_code: { contains: search_value } },
