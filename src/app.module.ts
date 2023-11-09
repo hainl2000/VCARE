@@ -14,6 +14,7 @@ import { RequestMiddleware } from './core/request.middleware';
 import { OpenApiModule } from './modules/openapi.module';
 import { SharedModule } from './shared/shared.module';
 import { UploadModule } from './upload/upload.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 @Module({
   imports: [
     AuthModule,
@@ -36,6 +37,7 @@ import { UploadModule } from './upload/upload.module';
         adapter: new HandlebarsAdapter(),
       },
     }),
+    ThrottlerModule.forRoot(),
     UploadModule,
   ],
 })
