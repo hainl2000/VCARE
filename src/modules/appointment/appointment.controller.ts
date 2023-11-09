@@ -18,6 +18,7 @@ import {
   GetAppointmentDetailQuery,
   ListAppointmentQuery,
   PatientHistoryQuery,
+  SearchAppointDto,
   UpdateAppointmentDto,
   UpdateServiceResultDto,
 } from './appointment.dto';
@@ -82,6 +83,16 @@ export class AppointmentController {
     @Account() doctor: doctors,
   ) {
     return this.appointmentService.updateServiceResult(data, doctor);
+  }
+
+  @AuthRole('doctor')
+  @SetMetadata(DROLE_KEY, ['service'])
+  @Get('search-appointment')
+  searchAppointment(
+    @Query() query: SearchAppointDto,
+    @Account() doctor: doctors,
+  ) {
+    return this.appointmentService.searchAppointment(query, doctor);
   }
 
   @AuthRole('doctor', 'user', 'hospital')

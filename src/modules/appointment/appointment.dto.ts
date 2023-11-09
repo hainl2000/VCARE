@@ -67,6 +67,12 @@ export class PatientHistoryQuery extends ListDto {
   patientId: number;
 }
 
+export class SearchAppointDto {
+  @IsNotEmpty()
+  @IsString()
+  search_value: string;
+}
+
 export class UpdateAppointmentDto {
   @IsOptional()
   @IsBoolean()

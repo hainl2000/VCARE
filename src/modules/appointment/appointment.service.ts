@@ -9,6 +9,7 @@ import {
   GetAppointmentDetailQuery,
   ListAppointmentQuery,
   PatientHistoryQuery,
+  SearchAppointDto,
   UpdateServiceResultDto,
 } from './appointment.dto';
 import {
@@ -395,5 +396,31 @@ export class AppointmentService {
         fee: item.fee,
       })),
     };
+  }
+
+  async searchAppointment(query: SearchAppointDto, doctor: doctors) {
+    try {
+      const { search_value } = query;
+      const whereOption: Prisma.health_check_appointmentWhereInput = {};
+      if (!!search_value) {
+        whereOption.OR = [
+          { external_code: { contains: search_value } },
+          { user: { phone: search_value } },
+          { user: { email: search_value } },
+          { user: { identity_number: search_value } },
+          { user: { social_insurance_number: search_value } },
+        ];
+      }
+      const result = await this.prisma.health_check_appointment.findFirst({
+        where: whereOption,
+      });
+      if (!!result) {
+        return result;
+      }
+      return null;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }
