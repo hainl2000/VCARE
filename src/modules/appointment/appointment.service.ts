@@ -234,7 +234,10 @@ export class AppointmentService {
   async getDetail(appointmentId: number, account: accountWithRole) {
     const appointment = await this.prisma.health_check_appointment.findUnique({
       where: { id: appointmentId },
-      include: { services: { include: { doctor: true, service: true } } },
+      include: {
+        services: { include: { doctor: true, service: true } },
+        doctor: true,
+      },
     });
 
     if (!appointment) {
