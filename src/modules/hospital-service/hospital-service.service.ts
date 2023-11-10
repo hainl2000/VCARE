@@ -110,17 +110,18 @@ export class HospitalServiceService {
     account: accountWithRole,
   ) {
     try {
-      
       const { name, pageIndex, pageSize, serviceId } = query;
       const whereOption: Prisma.medical_servicesWhereInput = {};
+      console.log(account);
+
       if (account.role === 'hospital') {
         whereOption.service.hospital_id = account.id;
       }
-  
+
       if (account.role === 'doctor') {
         whereOption.service.hospital_id = account['hospital_id'];
       }
-  
+
       if (!!serviceId) {
         whereOption.service_id = serviceId;
       }
@@ -129,7 +130,7 @@ export class HospitalServiceService {
       }
       const size = pageSize ?? 10;
       const index = pageIndex ?? 1;
-  
+
       const [data, total] = await Promise.all([
         this.prismaService.medical_services.findMany({
           where: whereOption,
@@ -138,12 +139,11 @@ export class HospitalServiceService {
         }),
         this.prismaService.medical_services.count({ where: whereOption }),
       ]);
-  
+
       return { data, total };
-    } catch (error) 
-    {
+    } catch (error) {
       console.log(error);
-      
+
       throw error;
     }
   }
