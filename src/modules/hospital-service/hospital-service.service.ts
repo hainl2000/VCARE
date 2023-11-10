@@ -109,35 +109,43 @@ export class HospitalServiceService {
     query: MedicalServiceQuery,
     account: accountWithRole,
   ) {
-    const { name, pageIndex, pageSize, serviceId } = query;
-    const whereOption: Prisma.medical_servicesWhereInput = {};
-    if (account.role === 'hospital') {
-      whereOption.service.hospital_id = account.id;
+    try {
+      
+      const { name, pageIndex, pageSize, serviceId } = query;
+      const whereOption: Prisma.medical_servicesWhereInput = {};
+      if (account.role === 'hospital') {
+        whereOption.service.hospital_id = account.id;
+      }
+  
+      if (account.role === 'doctor') {
+        whereOption.service.hospital_id = account['hospital_id'];
+      }
+  
+      if (!!serviceId) {
+        whereOption.service_id = serviceId;
+      }
+      if (!!name) {
+        whereOption.name = { contains: name, mode: 'insensitive' };
+      }
+      const size = pageSize ?? 10;
+      const index = pageIndex ?? 1;
+  
+      const [data, total] = await Promise.all([
+        this.prismaService.medical_services.findMany({
+          where: whereOption,
+          skip: (index - 1) * size,
+          take: size,
+        }),
+        this.prismaService.medical_services.count({ where: whereOption }),
+      ]);
+  
+      return { data, total };
+    } catch (error) 
+    {
+      console.log(error);
+      
+      throw error;
     }
-
-    if (account.role === 'doctor') {
-      whereOption.service.hospital_id = account['hospital_id'];
-    }
-
-    if (!!serviceId) {
-      whereOption.service_id = serviceId;
-    }
-    if (!!name) {
-      whereOption.name = { contains: name, mode: 'insensitive' };
-    }
-    const size = pageSize ?? 10;
-    const index = pageIndex ?? 1;
-
-    const [data, total] = await Promise.all([
-      this.prismaService.medical_services.findMany({
-        where: whereOption,
-        skip: (index - 1) * size,
-        take: size,
-      }),
-      this.prismaService.medical_services.count({ where: whereOption }),
-    ]);
-
-    return { data, total };
   }
 
   async updateMedicalService(
