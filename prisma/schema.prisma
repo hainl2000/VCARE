@@ -181,7 +181,7 @@ model health_check_appointment {
   finished            Boolean             @default(false)
   conclude            Json?               @db.JsonB
   note                String?
-  medicine            Json?               @db.JsonB
+  medicine            String?
   fee                 Float?
   fee_paid            Boolean             @default(false)
   user                users               @relation(fields: [user_id], references: [id])

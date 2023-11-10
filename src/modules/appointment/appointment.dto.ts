@@ -79,6 +79,10 @@ export class UpdateAppointmentDto {
   finished?: boolean;
 
   @IsOptional()
+  @IsString()
+  medicine?: string;
+
+  @IsOptional()
   @IsNotEmptyObject()
   conclude?: Record<string, string>;
 
