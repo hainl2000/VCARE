@@ -69,7 +69,7 @@ export class HospitalServiceController {
     return this.hospitalServiceService.update(serviceId, data, hospital);
   }
 
-  @AuthRole('hospital', 'doctor')
+  // @AuthRole('hospital', 'doctor')
   @Get('list')
   findMedicalServices(
     @Query() query: MedicalServiceQuery,
