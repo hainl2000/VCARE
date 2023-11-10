@@ -115,7 +115,9 @@ export class HospitalServiceService {
       console.log(account);
 
       if (account.role === 'hospital') {
-        whereOption.service.hospital_id = account.id;
+        whereOption.service = {
+          hospital_id: account.id,
+        };
       }
 
       if (account.role === 'doctor') {
