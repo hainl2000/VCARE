@@ -415,9 +415,24 @@ export class AppointmentService {
       }
       const result = await this.prisma.health_check_appointment.findFirst({
         where: whereOption,
+        include: {
+          services: {
+            include: {
+              service: true,
+            },
+          },
+        },
       });
       if (!!result) {
-        return result;
+        return {
+          ...result,
+          services_result: result.services.flatMap((item) => {
+            return item.result_image.map((img) => ({
+              label: item.service.name,
+              url: img,
+            }));
+          }),
+        };
       }
       return null;
     } catch (error) {

@@ -121,7 +121,9 @@ export class HospitalServiceService {
       }
 
       if (account.role === 'doctor') {
-        whereOption.service.hospital_id = account['hospital_id'];
+        whereOption.service = {
+          hospital_id: account['hospital_id'],
+        };
       }
 
       if (!!serviceId) {
