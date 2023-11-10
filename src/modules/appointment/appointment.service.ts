@@ -415,7 +415,7 @@ export class AppointmentService {
       }
       const result = await this.prisma.health_check_appointment.findFirst({
         where: whereOption,
-        select: {
+        include: {
           services: {
             select: {
               service: true,
