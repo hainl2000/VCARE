@@ -179,7 +179,7 @@ model health_check_appointment {
   time                DateTime
   time_in_string      String
   finished            Boolean             @default(false)
-  conclude            Json?               @db.JsonB
+  conclude            String?
   note                String?
   medicine            String?
   fee                 Float?
