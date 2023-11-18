@@ -334,7 +334,6 @@ export class AppointmentService {
       Prisma.health_check_appointmentUpdateInput,
       Prisma.health_check_appointmentUncheckedUpdateInput
     >,
-    doctor: doctors,
   ) {
     try {
       return await this.prisma.health_check_appointment.update({
