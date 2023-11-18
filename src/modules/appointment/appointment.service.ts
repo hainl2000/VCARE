@@ -16,6 +16,7 @@ import {
   Prisma,
   doctor_roles,
   doctors,
+  health_check_appointment,
   hospital_services,
   medical_services,
   users,
@@ -237,6 +238,8 @@ export class AppointmentService {
       include: {
         services: { include: { doctor: true, service: true } },
         doctor: true,
+        hospital: { select: { name: true, information: true } },
+        department: { select: { name: true } },
       },
     });
 
@@ -269,17 +272,38 @@ export class AppointmentService {
     };
   }
 
-  async addServices(id: number, services: number[]) {
+  async assignDoctor(doctor: doctors, appointmentId: number) {
+    try {
+      const appointment = await this.findById(appointmentId);
+      if (!appointment) {
+        throw new BadRequestException('Không tìm thấy lịch hẹn');
+      }
+
+      if (!!appointment.doctor_id) {
+        throw new BadRequestException('Lịch hẹn đã được tiếp nhận');
+      }
+
+      if (appointment.department_id !== doctor.department_id) {
+        throw new BadRequestException('Không thể tiếp nhận lịch hẹn này');
+      }
+
+      await this.prisma.health_check_appointment.update({
+        where: { id: appointment.id },
+        data: { doctor_id: doctor.id },
+      });
+
+      return { status: 'success' };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async addServices(appointment: health_check_appointment, services: number[]) {
     try {
       const records = await this.prisma.medical_services.findMany({
         where: { id: { in: services } },
       });
 
-      const appointment = await this.prisma.health_check_appointment.findUnique(
-        {
-          where: { id },
-        },
-      );
       if (records.length === 0) {
         throw new BadRequestException('Dịch vụ không hợp lệ');
       }
@@ -293,7 +317,7 @@ export class AppointmentService {
 
       await this.prisma.use_service.createMany({
         data: records.map((r) => ({
-          appointment_id: id,
+          appointment_id: appointment.id,
           service_id: r.id,
         })),
       });
@@ -313,7 +337,6 @@ export class AppointmentService {
     doctor: doctors,
   ) {
     try {
-      data.doctor_id = doctor.id;
       return await this.prisma.health_check_appointment.update({
         where: { id },
         data: data,

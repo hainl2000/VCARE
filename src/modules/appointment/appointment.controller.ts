@@ -1,7 +1,9 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -59,6 +61,16 @@ export class AppointmentController {
     return this.appointmentService.getDetail(appointmentId, account);
   }
 
+  @Get('assign/:id')
+  @AuthRole('doctor')
+  @SetMetadata(DROLE_KEY, ['specialis'])
+  async assignDoctor(
+    @Account() doctor: doctors,
+    @Param('id', ParseIntPipe) appointmentId: number,
+  ) {
+    return this.appointmentService.assignDoctor(doctor, appointmentId);
+  }
+
   @AuthRole('doctor')
   @SetMetadata(DROLE_KEY, ['specialis'])
   @Put(':id')
@@ -68,11 +80,28 @@ export class AppointmentController {
     @Account() account: doctors,
   ) {
     const { services, ...updateData } = data;
+    const appointment = await this.appointmentService.findById(id);
+    if (!appointment) {
+      throw new NotFoundException('Không tìm thấy lịch hẹn');
+    }
+    if (!appointment.doctor_id) {
+      throw new BadRequestException('Chưa đăng ký tiếp nhận lịch hẹn này');
+    }
+    if (appointment.doctor_id !== account.id) {
+      throw new BadRequestException('Không thể khám lịch hẹn này');
+    }
+
+    if (appointment.finished) {
+      throw new BadRequestException('Lịch hẹn đã khám xong');
+    }
     if (!!services && services.length > 0) {
-      const fee = await this.appointmentService.addServices(id, services);
+      const fee = await this.appointmentService.addServices(
+        appointment,
+        services,
+      );
       updateData.fee = fee;
     }
-    return this.appointmentService.update(id, updateData, account);
+    return this.appointmentService.update(id, updateData);
   }
 
   @AuthRole('doctor')
