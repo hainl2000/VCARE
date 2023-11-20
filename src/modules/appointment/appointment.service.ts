@@ -25,6 +25,7 @@ import * as dayjs from 'dayjs';
 import { account, accountWithRole, role, userField } from 'src/constants/type';
 import { UserService } from '../user/user.service';
 import { dateFilter, getAccountSafeData } from 'src/utils';
+import { getAppointmentStatus } from './util';
 
 @Injectable()
 export class AppointmentService {
@@ -170,7 +171,7 @@ export class AppointmentService {
     ]);
 
     return {
-      data,
+      data: data.map((d) => ({ ...d, status: getAppointmentStatus(d) })),
       total,
     };
   }
@@ -263,6 +264,7 @@ export class AppointmentService {
 
     return {
       ...appointment,
+      status: getAppointmentStatus(appointment),
       services_result: appointment.services.flatMap((item) => {
         return item.result_image.map((img) => ({
           label: 'Kết quả ' + item.service.name,
