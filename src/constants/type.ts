@@ -79,3 +79,7 @@ export type bloodType =
   | 'ab+'
   | 'AB-'
   | 'ab-';
+
+export const ImageExts = ['.png', '.jpg', '.jpeg', '.gif'];
+
+export const ExcelExts = ['.xlsx', '.xlsm', '.xls', '.xml'];

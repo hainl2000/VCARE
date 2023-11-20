@@ -13,6 +13,7 @@ import { AuthRole } from 'src/decorators/authorization.decorator';
 import { Account } from 'src/decorators/account.decorator';
 import { accountWithRole } from 'src/constants/type';
 import * as dayjs from 'dayjs';
+import { genFileName } from './util';
 
 @Controller('upload')
 export class UploadController {
@@ -34,13 +35,8 @@ export class UploadController {
     @UploadedFile() file: Express.Multer.File,
     @Account() account: accountWithRole,
   ) {
-    const ext = extname(file.originalname);
-
-    if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg' && ext !== '.gif') {
-      throw new BadRequestException('Chỉ upload được ảnh');
-    }
     try {
-      const fileName = `${account.role}_${account.id}_${dayjs().valueOf()}.png`;
+      const fileName = genFileName(file.originalname, account);
       return await this.uploadService.upload(file, fileName);
     } catch (error) {
       throw error;
@@ -54,29 +50,10 @@ export class UploadController {
     @UploadedFiles() files: Express.Multer.File[],
     @Account() account: accountWithRole,
   ) {
-    const valid = files.every((file) => {
-      const ext = extname(file.originalname);
-      if (
-        ext !== '.png' &&
-        ext !== '.jpg' &&
-        ext !== '.jpeg' &&
-        ext !== '.gif'
-      ) {
-        return false;
-      }
-      return true;
-    });
-
-    if (!valid) {
-      throw new BadRequestException('Chỉ upload được ảnh');
-    }
+    const fileNames = files.map((item) =>
+      genFileName(item.originalname, account),
+    );
     try {
-      const currentTime = dayjs().valueOf();
-      const fileNames = files.map(
-        (_, index) =>
-          `${account.role}_${account.id}_${currentTime}_${index}.png`,
-      );
-
       return await Promise.all(
         files.map((file, index) =>
           this.uploadService.upload(file, fileNames[index]),

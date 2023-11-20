@@ -7,5 +7,5 @@ export const ISODateRegex = new RegExp(
 );
 
 export const ImageRegex = new RegExp(
-  /^(user|admin|doctor|hospital)_[0-9]*_(\d{13})(|_\d{1}).png$/,
+  /^(user|admin|doctor|hospital)_[0-9]*_(\d{13})(.png|.xlsx|.xlsm|.xls|.xml)$/,
 );
