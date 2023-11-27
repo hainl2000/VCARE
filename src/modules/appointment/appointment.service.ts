@@ -451,9 +451,13 @@ export class AppointmentService {
         },
       });
       if (!!result) {
+        const myServices = result.services.filter(
+          (s) => s.service.service_id === doctor.service_id,
+        );
         return {
           ...result,
-          services_result: result.services.flatMap((item) => {
+          services: myServices,
+          services_result: myServices.flatMap((item) => {
             return item.result_image.map((img) => ({
               label: item.service.name,
               url: img,
