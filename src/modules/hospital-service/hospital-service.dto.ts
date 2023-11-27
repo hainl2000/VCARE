@@ -19,9 +19,6 @@ export class CreateHospitalServiceDto {
   @IsOptional()
   @IsObject()
   template?: Record<string, any>;
-
-  @IsOptional()
-  fee?: number = null;
 }
 
 export class UpdateHospitalServiceDto {
