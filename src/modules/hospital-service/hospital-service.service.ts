@@ -28,6 +28,8 @@ export class HospitalServiceService {
         },
       });
     } catch (error) {
+      console.log(error);
+
       throw new BadRequestException('Service đã tồn tại');
     }
   }
