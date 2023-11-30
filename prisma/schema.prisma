@@ -136,6 +136,8 @@ model hospital_department {
   hospital                 hospitals                  @relation(fields: [hospital_id], references: [id])
   doctors                  doctors[]
   health_check_appointment health_check_appointment[]
+  time_per_turn            Int                        @default(5)
+  start_order              Int                        @default(1)
 
   @@unique([name, hospital_id])
 }
@@ -173,10 +175,10 @@ model health_check_appointment {
   department_id       Int
   user_id             Int
   doctor_id           Int?
-  external_code       String              @unique @default(dbgenerated("nanoid()")) @db.VarChar()
+  external_code       String?             @unique
+  order               Int
   patient_information Json?               @db.JsonB
   medical_condition   String
-  time                DateTime
   time_in_string      String
   finished            Boolean             @default(false)
   conclude            String?

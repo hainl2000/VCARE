@@ -4,7 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma.service';
-import { CreateDepartmentDto, ListDepartmentQuery } from './department.dto';
+import {
+  CreateDepartmentDto,
+  ListDepartmentQuery,
+  UpdateDepartmentDto,
+} from './department.dto';
 import { accountWithRole } from 'src/constants/type';
 import { Prisma, hospitals } from '@prisma/client';
 import { getAccountSafeData } from 'src/utils';
@@ -19,6 +23,7 @@ export class DepartmentService {
         data: {
           name: data.name,
           hospital_id: hospital.id,
+          time_per_turn: data.time_per_turn ?? 5,
         },
       });
     } catch (error) {
@@ -73,6 +78,17 @@ export class DepartmentService {
       return result;
     } catch (error) {
       throw error;
+    }
+  }
+
+  async update(id: number, data: UpdateDepartmentDto, hospitalId: number) {
+    try {
+      return await this.prisma.hospital_department.updateMany({
+        where: { id, hospital_id: hospitalId },
+        data,
+      });
+    } catch (error) {
+      throw new BadRequestException('Không có quyền chỉnh sửa');
     }
   }
 }

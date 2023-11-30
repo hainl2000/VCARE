@@ -14,6 +14,11 @@ export class CreateDepartmentDto {
   @IsString()
   @MinLength(3)
   name: string;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  time_per_turn?: number;
 }
 
 export class ListDepartmentQuery extends ListDto {
@@ -26,4 +31,15 @@ export class ListDepartmentQuery extends ListDto {
   @IsInt()
   @IsPositive()
   hospital_id: number;
+}
+
+export class UpdateDepartmentDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  time_per_turn?: number;
 }

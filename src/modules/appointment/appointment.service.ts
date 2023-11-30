@@ -3,32 +3,31 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/shared/prisma.service';
-import {
-  CreateAppointmentDto,
-  GetAppointmentDetailQuery,
-  ListAppointmentQuery,
-  PatientHistoryQuery,
-  SearchAppointDto,
-  UpdateServiceResultDto,
-} from './appointment.dto';
 import {
   Prisma,
   doctor_roles,
   doctors,
   health_check_appointment,
-  hospital_services,
   medical_services,
   users,
 } from '@prisma/client';
 import * as dayjs from 'dayjs';
-import { account, accountWithRole, role, userField } from 'src/constants/type';
+import { accountWithRole, role, userField } from 'src/constants/type';
+import { PrismaService } from 'src/shared/prisma.service';
+import { getAccountSafeData } from 'src/utils';
 import { UserService } from '../user/user.service';
-import { dateFilter, getAccountSafeData } from 'src/utils';
+import {
+  CreateAppointmentDto,
+  ListAppointmentQuery,
+  PatientHistoryQuery,
+  SearchAppointDto,
+  UpdateServiceResultDto,
+} from './appointment.dto';
 import { getAppointmentStatus } from './util';
 
 @Injectable()
 export class AppointmentService {
+  private availableCodes: string[] = [];
   constructor(
     private readonly prisma: PrismaService,
     private readonly userService: UserService,
@@ -43,15 +42,17 @@ export class AppointmentService {
       ...checkData
     } = data;
 
+    if (!dayjs(time_in_string).isAfter(dayjs().startOf('date'))) {
+      throw new BadRequestException('Thời điểm đặt lịch phải sau ngày hôm nay');
+    }
+
     const existed = await this.prisma.health_check_appointment.findFirst({
       where: { user_id: user.id, time_in_string },
       orderBy: { id: 'desc' },
     });
-
     if (!!existed) {
       throw new BadRequestException('Bạn đã đặt lịch ở thời điểm này rồi');
     }
-
     const updateUserData: Prisma.usersUpdateInput = {};
 
     Object.keys(checkData).forEach((key: userField) => {
@@ -75,17 +76,43 @@ export class AppointmentService {
       patient_information.full_name = update['full_name'];
     }
 
-    return await this.prisma.health_check_appointment.create({
-      data: {
-        medical_condition,
-        time_in_string,
-        time: dayjs(time_in_string).toDate(),
-        department_id,
-        hospital_id,
-        user_id: user.id,
-        patient_information,
-      },
+    const department = await this.prisma.hospital_department.findUnique({
+      where: { id: department_id },
     });
+
+    const order = await this.prisma.health_check_appointment.count({
+      where: { department_id, time_in_string },
+    });
+    const orderMin = department.time_per_turn * order;
+    if (orderMin > 60 * 10) {
+      throw new BadRequestException(`Lịch khám ngày ${time_in_string} đã đầy`);
+    }
+    const appointment = await this.prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const external_code = await this.genExternalCode();
+        return await tx.health_check_appointment.create({
+          data: {
+            medical_condition,
+            time_in_string,
+            department_id,
+            hospital_id,
+            user_id: user.id,
+            patient_information,
+            external_code,
+            order: order + 1,
+          },
+        });
+      },
+    );
+
+    const suggest_time = dayjs()
+      .startOf('date')
+      .add(orderMin + 7 * 60, 'minute')
+      .format('HH:mm');
+    return {
+      ...appointment,
+      suggest_time,
+    };
   }
 
   async checkTime(time: string, user: users) {
@@ -101,13 +128,6 @@ export class AppointmentService {
 
     if (!!conflict) {
       throw new BadRequestException('Thời điểm đã được đặt');
-    }
-
-    if (!!nearby && dayjs().isBefore(nearby.time)) {
-      return {
-        status: true,
-        message: 'Đã đặt khung giờ khác. Có thể đặt thêm',
-      };
     }
 
     return {
@@ -129,6 +149,7 @@ export class AppointmentService {
         whereOption.user_id = account.id;
         break;
       case 'doctor':
+        whereOption.time_in_string = dayjs().format('YYYY-MM-DD');
         const { drole } = account as doctors & {
           drole: doctor_roles;
           role: role;
@@ -144,16 +165,17 @@ export class AppointmentService {
         break;
     }
 
-    whereOption.time = dateFilter(startFrom, endAt);
-
     if (!!search_value) {
       whereOption.OR = [
-        { external_code: { contains: search_value } },
+        { external_code: search_value },
         { user: { phone: search_value } },
         { user: { email: search_value } },
         { user: { identity_number: search_value } },
         { user: { social_insurance_number: search_value } },
       ];
+      if (Number.isInteger(+search_value)) {
+        whereOption.OR.push({ order: +search_value });
+      }
     }
 
     const [data, total] = await Promise.all([
@@ -186,7 +208,7 @@ export class AppointmentService {
       service_id: doctor.service_id,
     };
 
-    whereOption.appointment.time = dateFilter(startFrom, endAt);
+    // whereOption.appointment.time = dateFilter(startFrom, endAt);
 
     if (!!search_value) {
       whereOption.OR = [
@@ -240,7 +262,7 @@ export class AppointmentService {
         services: { include: { doctor: true, service: true } },
         doctor: true,
         hospital: { select: { name: true, information: true } },
-        department: { select: { name: true } },
+        department: { select: { name: true, time_per_turn: true } },
       },
     });
 
@@ -262,9 +284,21 @@ export class AppointmentService {
       throw new NotFoundException('Không thể truy cập tài nguyên');
     }
 
+    let suggest_time: string = null;
+    if (account.role === 'user') {
+      suggest_time = dayjs()
+        .startOf('date')
+        .add(
+          7 * 60 +
+            appointment.department.time_per_turn * (appointment.order - 1),
+          'minute',
+        )
+        .format('HH:mm');
+    }
     return {
       ...appointment,
       status: getAppointmentStatus(appointment),
+      suggest_time,
       services_result: appointment.services.flatMap((item) => {
         return item.result_image.map((img) => ({
           label: 'Kết quả ' + item.service.name,
@@ -470,5 +504,36 @@ export class AppointmentService {
       console.log(error);
       throw error;
     }
+  }
+
+  async genExternalCode() {
+    if (this.availableCodes[0].length > 0) {
+      const code = this.availableCodes[0];
+      this.availableCodes.shift();
+      return code;
+    }
+
+    const availableCodes: string[] = [];
+    while (availableCodes.length === 0) {
+      const codes = [
+        ...new Set(
+          Array.from({ length: 3000 }, () =>
+            (Math.random() + 1).toString(36).substring(4),
+          ),
+        ),
+      ];
+      const result = await this.prisma.health_check_appointment.findMany({
+        where: { external_code: { in: codes } },
+        select: { external_code: true },
+      });
+
+      const existed = result.map((item) => item.external_code);
+      availableCodes.push(...codes.filter((code) => !existed.includes(code)));
+    }
+
+    const code = availableCodes[0];
+    availableCodes.shift();
+    this.availableCodes = availableCodes;
+    return code;
   }
 }

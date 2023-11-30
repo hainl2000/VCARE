@@ -1,15 +1,14 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDefined,
   IsInt,
   IsNotEmpty,
-  IsNotEmptyObject,
-  IsObject,
   IsOptional,
   IsPositive,
   IsString,
 } from 'class-validator';
+import * as dayjs from 'dayjs';
 import { ListDto } from 'src/constants/class';
 
 export class CreateAppointmentDto {
@@ -31,6 +30,9 @@ export class CreateAppointmentDto {
 
   @IsDefined()
   @IsString()
+  @Transform(({ value }) => {
+    return dayjs(value).format('YYYY-MM-DD');
+  })
   time_in_string: string;
 
   @IsDefined()

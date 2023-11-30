@@ -5,10 +5,15 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { DepartmentService } from './department.service';
-import { CreateDepartmentDto, ListDepartmentQuery } from './department.dto';
+import {
+  CreateDepartmentDto,
+  ListDepartmentQuery,
+  UpdateDepartmentDto,
+} from './department.dto';
 import { AuthRole } from 'src/decorators/authorization.decorator';
 import { Account } from 'src/decorators/account.decorator';
 import { account, accountWithRole } from 'src/constants/type';
@@ -36,5 +41,15 @@ export class DepartmentController {
   @Get('detail/:id')
   getDetail(@Param('id', ParseIntPipe) id: number) {
     return this.departmentService.getDetail(id);
+  }
+
+  @Put(':id')
+  @AuthRole('hospital')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateDepartmentDto,
+    @Account('id') hospitalId: number,
+  ) {
+    return this.departmentService.update(id, data, hospitalId);
   }
 }

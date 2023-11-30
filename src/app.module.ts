@@ -7,6 +7,8 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import configuration from './config/environment-configuration';
@@ -14,7 +16,7 @@ import { RequestMiddleware } from './core/request.middleware';
 import { OpenApiModule } from './modules/openapi.module';
 import { SharedModule } from './shared/shared.module';
 import { UploadModule } from './upload/upload.module';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { JobsModule } from './jobs/jobs.module';
 @Module({
   imports: [
     AuthModule,
@@ -38,7 +40,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
       },
     }),
     ThrottlerModule.forRoot(),
+    ScheduleModule.forRoot(),
     UploadModule,
+    JobsModule,
   ],
 })
 export class AppModule implements NestModule {
