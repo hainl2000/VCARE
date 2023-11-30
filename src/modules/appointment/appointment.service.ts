@@ -507,7 +507,7 @@ export class AppointmentService {
   }
 
   async genExternalCode() {
-    if (this.availableCodes[0].length > 0) {
+    if (this.availableCodes.length > 0) {
       const code = this.availableCodes[0];
       this.availableCodes.shift();
       return code;
