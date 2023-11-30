@@ -176,7 +176,7 @@ model health_check_appointment {
   user_id             Int
   doctor_id           Int?
   external_code       String?             @unique
-  order               Int
+  order               Int                 @default(-1)
   patient_information Json?               @db.JsonB
   medical_condition   String
   time_in_string      String
