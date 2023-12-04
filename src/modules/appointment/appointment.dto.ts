@@ -7,6 +7,8 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Max,
+  Min,
 } from 'class-validator';
 import * as dayjs from 'dayjs';
 import { ListDto } from 'src/constants/class';
@@ -34,6 +36,12 @@ export class CreateAppointmentDto {
     return dayjs(value).format('YYYY-MM-DD');
   })
   time_in_string: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(7)
+  @Max(16)
+  hour?: number;
 
   @IsDefined()
   @IsString()

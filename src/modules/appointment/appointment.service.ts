@@ -39,6 +39,7 @@ export class AppointmentService {
       hospital_id,
       medical_condition,
       time_in_string,
+      hour,
       ...checkData
     } = data;
 
@@ -80,13 +81,52 @@ export class AppointmentService {
       where: { id: department_id },
     });
 
-    const order = await this.prisma.health_check_appointment.count({
+    const check = await this.prisma.health_check_appointment.findMany({
       where: { department_id, time_in_string },
+      select: { order: true },
     });
-    const orderMin = department.time_per_turn * order;
-    if (orderMin > 60 * 10) {
-      throw new BadRequestException(`Lịch khám ngày ${time_in_string} đã đầy`);
+
+    const orders = check.map((c) => c.order);
+
+    let order: number = null;
+
+    const maxOrder = Math.floor((10 * 60) / department.time_per_turn);
+
+    if (!!hour) {
+      const startHour = (hour - 7) * 60;
+      const startRange =
+        startHour +
+        department.time_per_turn -
+        (startHour % department.time_per_turn);
+      const endHour = (hour - 6) * 60;
+      const endRange =
+        endHour +
+        department.time_per_turn -
+        (endHour % department.time_per_turn);
+      const rangeStart = startRange / department.time_per_turn + 1;
+      const rangeEnd = endRange / department.time_per_turn + 1;
+      const rangeLength = rangeEnd - rangeStart;
+      const range = Array.from(
+        { length: rangeLength },
+        (_, i) => rangeStart + i,
+      );
+
+      order = range.find((r) => !orders.includes(r));
+      if (order === undefined) {
+        throw new BadRequestException('Khung giờ này đã hết lượt đặt');
+      }
+    } else {
+      order = Array.from({ length: maxOrder }, (_, i) => i + 1).find(
+        (o) => !orders.includes(o),
+      );
+      if (order === undefined) {
+        throw new BadRequestException(
+          `Lịch khám ngày ${time_in_string} đã đầy`,
+        );
+      }
     }
+
+    const orderMin = department.time_per_turn * order;
     const appointment = await this.prisma.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const external_code = await this.genExternalCode();
@@ -99,7 +139,7 @@ export class AppointmentService {
             user_id: user.id,
             patient_information,
             external_code,
-            order: order + 1,
+            order,
           },
         });
       },
