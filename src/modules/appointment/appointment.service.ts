@@ -95,14 +95,18 @@ export class AppointmentService {
     if (!!hour) {
       const startHour = (hour - 7) * 60;
       const startRange =
-        startHour +
-        department.time_per_turn -
-        (startHour % department.time_per_turn);
+        startHour % department.time_per_turn
+          ? startHour +
+            department.time_per_turn -
+            (startHour % department.time_per_turn)
+          : startHour;
       const endHour = (hour - 6) * 60;
       const endRange =
-        endHour +
-        department.time_per_turn -
-        (endHour % department.time_per_turn);
+        endHour % department.time_per_turn
+          ? endHour +
+            department.time_per_turn -
+            (endHour % department.time_per_turn)
+          : endHour;
       const rangeStart = startRange / department.time_per_turn + 1;
       const rangeEnd = endRange / department.time_per_turn + 1;
       const rangeLength = rangeEnd - rangeStart;
