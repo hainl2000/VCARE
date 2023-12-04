@@ -130,7 +130,7 @@ export class AppointmentService {
       }
     }
 
-    const orderMin = department.time_per_turn * order;
+    const orderMin = department.time_per_turn * (order - 1);
     const appointment = await this.prisma.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const external_code = await this.genExternalCode();
