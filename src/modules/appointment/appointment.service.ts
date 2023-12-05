@@ -8,6 +8,7 @@ import {
   doctor_roles,
   doctors,
   health_check_appointment,
+  hospital_department,
   medical_services,
   users,
 } from '@prisma/client';
@@ -254,9 +255,17 @@ export class AppointmentService {
       this.prisma.health_check_appointment.count({ where: whereOption }),
     ]);
 
+    let department: hospital_department = null;
+    if (!!department_id) {
+      department = await this.prisma.hospital_department.findUnique({
+        where: { id: department_id },
+      });
+    }
+
     return {
       data: data.map((d) => ({ ...d, status: getAppointmentStatus(d) })),
       total,
+      ...(department_id ? { department: department.name } : {}),
     };
   }
 
