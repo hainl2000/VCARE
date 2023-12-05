@@ -70,7 +70,7 @@ export class ListAppointmentQuery extends ListDto {
   search_value?: string;
 
   @IsOptional()
-  // @IsInt()
+  @IsInt()
   department_id?: number;
 }
 
