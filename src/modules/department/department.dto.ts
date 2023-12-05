@@ -18,7 +18,11 @@ export class CreateDepartmentDto {
   @IsOptional()
   @IsInt()
   @IsPositive()
-  time_per_turn?: number;
+  time_per_turn?: number = 15;
+
+  @IsOptional()
+  @IsString()
+  room?: string = null;
 }
 
 export class ListDepartmentQuery extends ListDto {
@@ -41,5 +45,8 @@ export class UpdateDepartmentDto {
   @IsOptional()
   @IsInt()
   @IsPositive()
-  time_per_turn?: number;
+  time_per_turn?: number = 15;
+  @IsOptional()
+  @IsString()
+  room?: string = null;
 }

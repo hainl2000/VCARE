@@ -12,7 +12,7 @@ import {
   SetMetadata,
 } from '@nestjs/common';
 import { doctors, users } from '@prisma/client';
-import { DROLE_KEY, accountWithRole } from 'src/constants/type';
+import { DROLE_KEY, accountWithRole, doctorRole } from 'src/constants/type';
 import { Account } from 'src/decorators/account.decorator';
 import { AuthRole } from 'src/decorators/authorization.decorator';
 import {
@@ -50,6 +50,15 @@ export class AppointmentController {
     @Account() account: accountWithRole,
   ) {
     return this.appointmentService.findAll(query, account);
+  }
+
+  @AuthRole('doctor')
+  @Get('history')
+  getHistory(
+    @Query() query: ListAppointmentQuery,
+    @Account() doctor: doctorRole,
+  ) {
+    return this.appointmentService.getHistory(query, account);
   }
 
   @AuthRole()

@@ -12,9 +12,14 @@ import {
   users,
 } from '@prisma/client';
 import * as dayjs from 'dayjs';
-import { accountWithRole, role, userField } from 'src/constants/type';
+import {
+  accountWithRole,
+  doctorRole,
+  role,
+  userField,
+} from 'src/constants/type';
 import { PrismaService } from 'src/shared/prisma.service';
-import { getAccountSafeData } from 'src/utils';
+import { dateFilterString, getAccountSafeData } from 'src/utils';
 import { UserService } from '../user/user.service';
 import {
   CreateAppointmentDto,
@@ -220,6 +225,47 @@ export class AppointmentService {
       if (Number.isInteger(+search_value)) {
         whereOption.OR.push({ order: +search_value });
       }
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.health_check_appointment.findMany({
+        where: whereOption,
+        skip: (index - 1) * size,
+        include: {
+          hospital: { select: { name: true, image: true, information: true } },
+          department: { select: { name: true } },
+        },
+        take: size,
+        orderBy: { id: 'desc' },
+      }),
+      this.prisma.health_check_appointment.count({ where: whereOption }),
+    ]);
+
+    return {
+      data: data.map((d) => ({ ...d, status: getAppointmentStatus(d) })),
+      total,
+    };
+  }
+
+  async getHistory(query: ListAppointmentQuery, doctor: doctorRole) {
+    const { endAt, search_value, pageIndex, pageSize, startFrom } = query;
+
+    const size = pageSize ?? 10;
+    const index = pageIndex ?? 1;
+
+    const whereOption: Prisma.health_check_appointmentWhereInput = {};
+
+    whereOption.time_in_string = dateFilterString(startFrom, endAt);
+
+    if (!!search_value) {
+      whereOption.OR = [
+        { external_code: search_value },
+        { user: { phone: search_value } },
+        { user: { full_name: search_value } },
+        { user: { email: search_value } },
+        { user: { identity_number: search_value } },
+        { user: { social_insurance_number: search_value } },
+      ];
     }
 
     const [data, total] = await Promise.all([

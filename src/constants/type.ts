@@ -25,11 +25,9 @@ export enum ENV {
 
 export type role = keyof typeof roles;
 
-export type account =
-  | users
-  | admins
-  | (doctors & { drole: doctor_roles | null })
-  | hospitals;
+export type doctorRole = doctors & { drole: doctor_roles | null };
+
+export type account = users | admins | doctorRole | hospitals;
 
 export type accountWithRole = account & { role: role };
 

@@ -27,3 +27,13 @@ export function dateFilter(
 
   return filter;
 }
+
+export function dateFilterString(startFrom?: string, endAt?: string) {
+  const filter = dateFilter(startFrom, endAt);
+  return Object.fromEntries(
+    Object.entries(filter).map((pair) => [
+      pair[0],
+      dayjs(pair[1] as Date).format('YYYY-MM-DD'),
+    ]),
+  );
+}
