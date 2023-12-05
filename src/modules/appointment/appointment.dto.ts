@@ -68,6 +68,10 @@ export class ListAppointmentQuery extends ListDto {
   @IsOptional()
   @IsString()
   search_value?: string;
+
+  @IsOptional()
+  @IsInt()
+  department_id?: number;
 }
 
 export class PatientHistoryQuery extends ListDto {

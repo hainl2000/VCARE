@@ -186,7 +186,14 @@ export class AppointmentService {
   }
 
   async findAll(query: ListAppointmentQuery, account: accountWithRole) {
-    const { endAt, search_value, pageIndex, pageSize, startFrom } = query;
+    const {
+      endAt,
+      search_value,
+      pageIndex,
+      pageSize,
+      startFrom,
+      department_id,
+    } = query;
 
     const size = pageSize ?? 10;
     const index = pageIndex ?? 1;
@@ -208,6 +215,12 @@ export class AppointmentService {
             { department_id: account['department_id'], finished: false },
             { doctor_id: account.id, finished: true },
           ];
+        }
+        break;
+      case 'hospital':
+        whereOption.time_in_string = dateFilterString(startFrom, endAt);
+        if (!!department_id) {
+          whereOption.department_id = department_id;
         }
         break;
       default:
