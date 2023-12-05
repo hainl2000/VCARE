@@ -281,6 +281,10 @@ export class AppointmentService {
       ];
     }
 
+    if (!!doctor.department_id) {
+      whereOption.department_id = doctor.department_id;
+    }
+
     const [data, total] = await Promise.all([
       this.prisma.health_check_appointment.findMany({
         where: whereOption,
