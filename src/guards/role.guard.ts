@@ -40,7 +40,7 @@ export class RoleGuard implements CanActivate {
       context.getHandler(),
     );
 
-    if (requireDoctorRoles.length === 0) return true;
+    if (!requireDoctorRoles || requireDoctorRoles.length === 0) return true;
     const doctor = account as doctors & {
       drole: doctor_roles | null;
       role: role;
