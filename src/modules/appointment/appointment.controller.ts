@@ -58,7 +58,7 @@ export class AppointmentController {
     @Query() query: ListAppointmentQuery,
     @Account() doctor: doctorRole,
   ) {
-    return this.appointmentService.getHistory(query, account);
+    return this.appointmentService.getHistory(query, doctor);
   }
 
   @AuthRole()
