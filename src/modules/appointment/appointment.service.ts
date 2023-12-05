@@ -221,7 +221,7 @@ export class AppointmentService {
       case 'hospital':
         whereOption.time_in_string = dateFilterString(startFrom, endAt);
         if (!!department_id) {
-          whereOption.department_id = department_id;
+          whereOption.department_id = Number(department_id);
         }
         break;
       default:
