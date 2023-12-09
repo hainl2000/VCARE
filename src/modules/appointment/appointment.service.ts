@@ -206,7 +206,7 @@ export class AppointmentService {
         whereOption.user_id = account.id;
         break;
       case 'doctor':
-        // whereOption.time_in_string = dayjs().format('YYYY-MM-DD');
+        whereOption.time_in_string = dayjs().format('YYYY-MM-DD');
         const { drole } = account as doctors & {
           drole: doctor_roles;
           role: role;
