@@ -7,6 +7,7 @@ import {
   IsString,
   IsPositive,
   ValidateNested,
+  IsInt,
 } from 'class-validator';
 import { bloodType } from 'src/constants/type';
 export class BloodStatus {
