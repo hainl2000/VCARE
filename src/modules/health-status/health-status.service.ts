@@ -20,6 +20,11 @@ export class HealthStatusService {
       return this.getHealthStatus(update);
     }
 
+    async getUserStatus(userId: number) {
+        const user = await this.prisma.findUnique({ where: { id: userId }});
+        return this.getHealthStatus(user);
+    }
+
     getHealthStatus(user: users) {
       const result: Record<string, any> = {
         height: null,
