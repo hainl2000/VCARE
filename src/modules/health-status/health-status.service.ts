@@ -21,7 +21,7 @@ export class HealthStatusService {
     }
 
     async getUserStatus(userId: number) {
-        const user = await this.prisma.findUnique({ where: { id: userId }});
+        const user = await this.prisma.users.findUnique({ where: { id: userId }});
         return this.getHealthStatus(user);
     }
 
