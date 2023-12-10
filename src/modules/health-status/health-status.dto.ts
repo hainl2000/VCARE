@@ -38,12 +38,12 @@ export class UpdateHeathStatusDto {
   //@Type(() => BloodStatus)
   //blood_status: BloodStatus;
   @IsOptional()
-  @IsPositive()
-  @IsInt()
+  // @IsPositive()
+  // @IsInt()
   height?: number;
 
   @IsOptional()
-  @IsPositive()
+  // @IsPositive()
   weight?: number;
 
   @IsOptional()
