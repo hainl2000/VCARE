@@ -53,4 +53,7 @@ export class UpdateHeathStatusDto {
   @IsOptional()
   @IsString()
   blood_pressure?: string;
+  @IsOptional()
+  @IsString()
+  note?: string;
 }
