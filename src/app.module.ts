@@ -1,6 +1,7 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import {
+  ExecutionContext,
   MiddlewareConsumer,
   Module,
   NestModule,
@@ -39,7 +40,7 @@ import { JobsModule } from './jobs/jobs.module';
         adapter: new HandlebarsAdapter(),
       },
     }),
-    ThrottlerModule.forRoot(),
+    ThrottlerModule.forRoot([{ name: 'payment', limit: 1, ttl: 5000 }]),
     ScheduleModule.forRoot(),
     UploadModule,
     JobsModule,

@@ -19,7 +19,7 @@ export class ValidationExceptionFilter implements ExceptionFilter {
       console.log(exception);
     }
     response.status(status).json({
-      stastatusCode: status,
+      statusCode: status,
       message,
       error: err['error'],
     });

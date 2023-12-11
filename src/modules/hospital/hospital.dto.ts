@@ -4,6 +4,7 @@ import {
   IsEmail,
   IsInt,
   IsOptional,
+  IsPositive,
   IsString,
   Matches,
   MinLength,
@@ -56,6 +57,22 @@ export class UpdateHospitalDto {
   @IsOptional()
   @IsInt()
   hospital_id?: number;
+
+  @IsOptional()
+  @IsPositive()
+  open_time?: number;
+
+  @IsOptional()
+  @IsPositive()
+  close_time?: number;
+
+  @IsOptional()
+  @IsPositive()
+  lunch_break_start?: number;
+
+  @IsOptional()
+  @IsPositive()
+  lunch_break_end?: number;
 }
 
 export class ListHospitalQuery extends ListDto {

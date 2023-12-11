@@ -163,6 +163,10 @@ model hospitals {
   created_at               DateTime                   @default(now())
   work_time                Json?                      @default("[]") @db.JsonB
   doctors                  doctors[]
+  open_time                Float                      @default(7.5)
+  close_time               Float                      @default(17)
+  lunch_break_start        Float                      @default(12)
+  lunch_break_end          Float                      @default(13.5)
   change_history           Json                       @default("[]") @db.JsonB
   created_by               admins                     @relation(fields: [created_by_id], references: [id])
   hospital_department      hospital_department[]

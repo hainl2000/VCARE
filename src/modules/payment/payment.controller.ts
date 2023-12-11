@@ -4,22 +4,21 @@ import { AuthRole } from 'src/decorators/authorization.decorator';
 import { PaymentDto } from './payment.dto';
 import { Account } from 'src/decorators/account.decorator';
 import { users } from '@prisma/client';
-import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { RateLimitingGuard } from 'src/guards/rate-limiting.guard';
 
+@SkipThrottle({ default: false })
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
-  // @Throttle({ttl: {tt}})
-  @UseGuards(ThrottlerGuard)
   @Post()
+  @UseGuards(RateLimitingGuard)
   @AuthRole('user')
   payAppointment(
-    @Body() { appointment_id }: PaymentDto,
     @Account() user: users,
+    @Body() { appointment_id }: PaymentDto,
   ) {
-    console.log('send');
-
     // return this.paymentService.payAppointment(appointment_id, user);
   }
 }

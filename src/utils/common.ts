@@ -41,7 +41,19 @@ export function dateFilterString(startFrom?: string, endAt?: string) {
 export function getMeaningfulData(data: Record<any, any>) {
   const response: Record<any, any> = {};
   Object.keys(data).forEach((key) => {
-    if (data[key] !== null && data[key] !== undefined) response[key] = data[key];
-  })
+    if (data[key] !== null && data[key] !== undefined)
+      response[key] = data[key];
+  });
   return response;
+}
+
+export function isBetween(
+  target: number,
+  bottom: number,
+  top: number,
+  checkEqual = true,
+) {
+  if (!!checkEqual) return target >= bottom && target <= top;
+
+  return target > bottom && target < top;
 }

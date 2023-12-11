@@ -20,7 +20,7 @@ import {
   userField,
 } from 'src/constants/type';
 import { PrismaService } from 'src/shared/prisma.service';
-import { dateFilterString, getAccountSafeData } from 'src/utils';
+import { dateFilterString, getAccountSafeData, isBetween } from 'src/utils';
 import { UserService } from '../user/user.service';
 import {
   CreateAppointmentDto,
@@ -83,57 +83,51 @@ export class AppointmentService {
       patient_information.full_name = update['full_name'];
     }
 
-    const department = await this.prisma.hospital_department.findUnique({
-      where: { id: department_id },
-    });
-
-    const check = await this.prisma.health_check_appointment.findMany({
-      where: { department_id, time_in_string },
-      select: { order: true },
-    });
+    const [department, check] = await Promise.all([
+      this.prisma.hospital_department.findUnique({
+        where: { id: department_id },
+        include: { hospital: true },
+      }),
+      this.prisma.health_check_appointment.findMany({
+        where: { department_id, time_in_string },
+        select: { order: true },
+      }),
+    ]);
 
     const orders = check.map((c) => c.order);
 
     let order: number = null;
 
-    const maxOrder = Math.floor((10 * 60) / department.time_per_turn);
+    const { open_time, close_time, lunch_break_end, lunch_break_start } =
+      department.hospital;
 
     if (!!hour) {
-      const startHour = (hour - 7) * 60;
-      const startRange =
-        startHour % department.time_per_turn
-          ? startHour +
-            department.time_per_turn -
-            (startHour % department.time_per_turn)
-          : startHour;
-      const endHour = (hour - 6) * 60;
-      const endRange =
-        endHour % department.time_per_turn
-          ? endHour +
-            department.time_per_turn -
-            (endHour % department.time_per_turn)
-          : endHour;
-      const rangeStart = startRange / department.time_per_turn + 1;
-      const rangeEnd = endRange / department.time_per_turn + 1;
-      const rangeLength = rangeEnd - rangeStart;
-      const range = Array.from(
-        { length: rangeLength },
-        (_, i) => rangeStart + i,
-      );
-
-      order = range.find((r) => !orders.includes(r));
-      if (order === undefined) {
-        throw new BadRequestException('Khung giờ này đã hết lượt đặt');
-      }
-    } else {
-      order = Array.from({ length: maxOrder }, (_, i) => i + 1).find(
-        (o) => !orders.includes(o),
-      );
-      if (order === undefined) {
+      if (
+        !isBetween(
+          hour,
+          Math.floor(open_time),
+          Math.floor(lunch_break_start),
+        ) &&
+        !isBetween(hour, Math.floor(lunch_break_end), Math.floor(close_time))
+      ) {
         throw new BadRequestException(
-          `Lịch khám ngày ${time_in_string} đã đầy`,
+          'Bệnh viện không tiếp nhận vào thời điểm này',
         );
       }
+    }
+
+    order = this.getOrder(
+      orders,
+      open_time * 60,
+      close_time * 60,
+      lunch_break_start * 60,
+      lunch_break_end * 60,
+      department.time_per_turn,
+      hour,
+    );
+
+    if (!order) {
+      throw new BadRequestException(`Lịch khám ngày ${time_in_string} đã đầy`);
     }
 
     const orderMin = department.time_per_turn * (order - 1);
@@ -155,10 +149,13 @@ export class AppointmentService {
       },
     );
 
-    const suggest_time = dayjs()
-      .startOf('date')
-      .add(orderMin + 7 * 60, 'minute')
-      .format('HH:mm');
+    const suggest_time = this.getOrderTime(
+      order,
+      open_time * 60,
+      lunch_break_start * 60,
+      lunch_break_end * 60,
+      department.time_per_turn,
+    );
     return {
       ...appointment,
       suggest_time,
@@ -377,7 +374,15 @@ export class AppointmentService {
       include: {
         services: { include: { doctor: true, service: true } },
         doctor: true,
-        hospital: { select: { name: true, information: true } },
+        hospital: {
+          select: {
+            name: true,
+            information: true,
+            open_time: true,
+            lunch_break_start: true,
+            lunch_break_end: true,
+          },
+        },
         department: { select: { name: true, time_per_turn: true } },
       },
     });
@@ -402,14 +407,13 @@ export class AppointmentService {
 
     let suggest_time: string = null;
     if (account.role === 'user') {
-      suggest_time = dayjs()
-        .startOf('date')
-        .add(
-          7 * 60 +
-            appointment.department.time_per_turn * (appointment.order - 1),
-          'minute',
-        )
-        .format('HH:mm');
+      suggest_time = this.getOrderTime(
+        appointment.order,
+        appointment.hospital.open_time * 60,
+        appointment.hospital.lunch_break_start * 60,
+        appointment.hospital.lunch_break_end * 60,
+        appointment.department.time_per_turn,
+      );
     }
     return {
       ...appointment,
@@ -651,5 +655,61 @@ export class AppointmentService {
     availableCodes.shift();
     this.availableCodes = availableCodes;
     return code;
+  }
+
+  getOrder(
+    ordereds: number[],
+    openTime: number,
+    closeTime: number,
+    breakStart: number,
+    breakEnd: number,
+    turn: number,
+    hour?: number,
+  ) {
+    let currentMinute = openTime;
+
+    let order = 1;
+
+    while (currentMinute < closeTime) {
+      const registed = ordereds.includes(order);
+      if (!hour && !registed) return order;
+      if (
+        !!hour &&
+        !registed &&
+        isBetween(currentMinute, hour * 60, (hour + 1) * 60 - 1)
+      )
+        return order;
+      order += 1;
+      currentMinute += turn;
+      if (!!hour && currentMinute >= (hour + 1) * 60) {
+        throw new BadRequestException('Khung giờ này đã hết lượt đặt');
+      }
+      if (isBetween(currentMinute, breakStart, breakEnd)) {
+        currentMinute = breakEnd;
+      }
+    }
+
+    return null;
+  }
+
+  getOrderTime(
+    order: number,
+    openTime: number,
+    breakStart: number,
+    breakEnd: number,
+    turn: number,
+  ) {
+    const breakAt = Math.ceil((breakStart - openTime) / turn);
+    if (order >= breakAt) {
+      return dayjs()
+        .startOf('date')
+        .add(breakEnd + (order - breakAt) * turn, 'minute')
+        .format('HH:mm');
+    }
+
+    return dayjs()
+      .startOf('date')
+      .add(openTime + (order - 1) * turn, 'minute')
+      .format('HH:mm');
   }
 }
