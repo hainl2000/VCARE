@@ -699,7 +699,7 @@ export class AppointmentService {
     breakEnd: number,
     turn: number,
   ) {
-    const breakAt = Math.ceil((breakStart - openTime) / turn);
+    const breakAt = Math.ceil((breakStart - openTime) / turn) + 1;
     if (order >= breakAt) {
       return dayjs()
         .startOf('date')
