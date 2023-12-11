@@ -27,7 +27,7 @@ export class JobsService {
       FROM (
         VALUES 
         ${data
-          .map((item) => `(${(item.department_id, item._count + 1)})`)
+          .map((item) => `(${item.department_id}, ${item._count + 1})`)
           .join(',')}) AS v(id, start_order)
       WHERE v.id = h.id`;
       await this.prisma.$queryRawUnsafe(query);
