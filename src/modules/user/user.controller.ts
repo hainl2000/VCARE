@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Post,
   Put,
 } from '@nestjs/common';
 import { users } from '@prisma/client';
@@ -18,7 +19,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { UpdateUserDto, UserResponse } from './user.dto';
+import { UpdatePatientProfileDto, UpdateUserDto, UserResponse } from './user.dto';
 import { getAccountSafeData } from 'src/utils';
 
 @ApiTags('user')
@@ -50,5 +51,16 @@ export class UserController {
   @Put()
   update(@Account() account: users, @Body() data: UpdateUserDto) {
     return this.userService.update(account, data);
+  }
+
+  @AuthRole('user')
+  @Post('profile-patient')
+  updatePatientProfile(@Account() account: users, @Body() data: UpdatePatientProfileDto) {
+    return this.userService.updatePatientProfile(account.id,data)
+  }
+  @AuthRole('user')
+  @Get('profile-patient')
+  getPatientProfile(@Account() account: users){
+    return this.userService.getPatientProfile(account.id)
   }
 }

@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma.service';
-import { CreateUserDto } from './user.dto';
+import { CreateUserDto, UpdatePatientProfileDto } from './user.dto';
 import { generateHashPass, getAccountSafeData } from 'src/utils/_security';
 import { Prisma, users } from '@prisma/client';
 import {
@@ -154,6 +154,32 @@ export class UserService {
       return await this.prisma.users.findUnique({ where: { id } });
     } catch (error) {
       throw error;
+    }
+  }
+  async updatePatientProfile(userId: number, data: UpdatePatientProfileDto) {
+    try {
+      await this.prisma.patient_profile.create({
+        data: {
+          user_id: userId,
+          url: data.url
+        }
+      })
+      return {
+        message: 'SUCCESS'
+      }
+    } catch (error) {
+      console.log(error);
+      throw error
+    }
+  }
+  async getPatientProfile(userId: number) {
+    const data = await this.prisma.patient_profile.findMany({
+      where: {
+        user_id: userId
+      }
+    })
+    return {
+      data: data?.map(item => item.url)
     }
   }
 }

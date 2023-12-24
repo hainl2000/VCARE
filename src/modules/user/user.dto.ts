@@ -10,6 +10,7 @@ import {
   IsOptional,
   IsBoolean,
   IsDate,
+  IsNotEmpty,
 } from 'class-validator';
 import * as dayjs from 'dayjs';
 import { dateRegex } from 'src/constants/regex';
@@ -114,4 +115,9 @@ export class UserResponse {
     example: 'test@gmail.com',
   })
   email?: string;
+}
+
+export class UpdatePatientProfileDto {
+  @IsNotEmpty()
+  url: string;
 }
