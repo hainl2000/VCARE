@@ -108,8 +108,11 @@ export class UpdateAppointmentDto {
   @IsInt({ each: true })
   @IsPositive({ each: true })
   services: number[];
-
   fee?: number;
+  @IsOptional()
+  re_examination?: string
+  @IsOptional()
+  periodi_examination?: string
 }
 
 export class UpdateServiceResultDto {

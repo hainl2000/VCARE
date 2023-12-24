@@ -14,10 +14,32 @@ import { Account } from 'src/decorators/account.decorator';
 import { accountWithRole } from 'src/constants/type';
 import * as dayjs from 'dayjs';
 import { genFileName } from './util';
+import { users } from '@prisma/client';
 
 @Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
+
+  @AuthRole()
+  @Post('image')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fieldNameSize: 255,
+        fileSize: 50e6,
+        files: 1,
+        fields: 1,
+      },
+    }),
+  )
+  async userUpload(@UploadedFile() file: Express.Multer.File, @Account() user: users) {
+    try {
+      const fileName = `user_${user?.id}_${dayjs().valueOf()}.png`
+      return await this.uploadService.upload(file, fileName);
+    } catch (error) {
+      throw error;
+    }
+  } 
 
   @AuthRole()
   @Post()

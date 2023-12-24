@@ -40,6 +40,14 @@ model users {
   change_history           Json                       @default("[]") @db.JsonB
   health_check_appointment health_check_appointment[]
   wallet                   wallet?
+  patient_profile          patient_profile[]
+}
+
+model patient_profile {
+  id      Int    @id @default(autoincrement())
+  user_id Int
+  user    users  @relation(fields: [user_id], references: [id])
+  url     String
 }
 
 model wallet {
@@ -197,6 +205,8 @@ model health_check_appointment {
   department          hospital_department @relation(fields: [department_id], references: [id])
   wallet_transaction  wallet_transaction?
   services            use_service[]
+  re_examination      String?
+  periodi_examination String?
 }
 
 model use_service {

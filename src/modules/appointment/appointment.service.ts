@@ -417,6 +417,8 @@ export class AppointmentService {
     }
     return {
       ...appointment,
+      re_examination: appointment.re_examination,
+      periodi_examination: appointment.periodi_examination,
       status: getAppointmentStatus(appointment),
       suggest_time,
       services_result: appointment.services.flatMap((item) => {
