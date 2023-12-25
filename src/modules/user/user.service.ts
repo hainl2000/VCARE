@@ -161,25 +161,39 @@ export class UserService {
       await this.prisma.patient_profile.create({
         data: {
           user_id: userId,
-          url: data.url
-        }
-      })
+          url: data.url,
+        },
+      });
       return {
-        message: 'SUCCESS'
-      }
+        message: 'SUCCESS',
+      };
     } catch (error) {
       console.log(error);
-      throw error
+      throw error;
     }
   }
   async getPatientProfile(userId: number) {
     const data = await this.prisma.patient_profile.findMany({
       where: {
-        user_id: userId
-      }
-    })
+        user_id: userId,
+      },
+    });
+    const urlArr = data?.map((item) => item.url);
+    const result = urlArr
+      .filter((item) => {
+        if (item.includes('.jpg') || item.includes('.png')) {
+          return item;
+        }
+      })
+      .concat(
+        urlArr.filter((item) => {
+          if (!item.includes('.jpg') && !item.includes('.png')) {
+            return item;
+          }
+        }),
+      );
     return {
-      data: data?.map(item => item.url)
-    }
+      data: result,
+    };
   }
 }
