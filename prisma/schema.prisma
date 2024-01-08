@@ -20,7 +20,7 @@ enum roles {
 model users {
   id                       Int                        @id @default(autoincrement())
   phone                    String                     @unique
-  email                    String                     @unique
+  email                    String?                    @unique
   password                 String
   full_name                String?
   avatar                   String?
