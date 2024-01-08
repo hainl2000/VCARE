@@ -16,7 +16,9 @@ import * as dayjs from 'dayjs';
 import { dateRegex } from 'src/constants/regex';
 
 export class CreateUserDto {
-  @IsDefined()
+  // @IsDefined()
+
+  @IsOptional()
   @IsEmail()
   email: string;
 
