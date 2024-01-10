@@ -597,6 +597,8 @@ export class AppointmentService {
         ];
       }
       whereOption.time_in_string = dateFilterString(startFrom, endAt);
+      console.log(whereOption);
+
       const results = await this.prisma.health_check_appointment.findMany({
         where: whereOption,
         orderBy: {
@@ -610,8 +612,8 @@ export class AppointmentService {
           },
         },
       });
-      if (!!results) {
-        results.map((result) => {
+      if (!!results.length) {
+        return results.map((result) => {
           const myServices = result.services.filter(
             (s) => s.service.service_id === doctor.service_id,
           );
