@@ -82,7 +82,7 @@ export class PatientHistoryQuery extends ListDto {
 }
 
 export class SearchAppointDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   search_value: string;
   @IsOptional()
