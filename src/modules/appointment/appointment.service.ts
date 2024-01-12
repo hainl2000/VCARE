@@ -247,7 +247,7 @@ export class AppointmentService {
           department: { select: { name: true } },
         },
         take: size,
-        orderBy: { id: 'desc' },
+        orderBy: { order: 'asc' },
       }),
       this.prisma.health_check_appointment.count({ where: whereOption }),
     ]);
