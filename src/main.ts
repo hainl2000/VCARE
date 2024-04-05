@@ -12,6 +12,6 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalInterceptors(new ConvertDateInterceptors());
   createDocument(app);
-  await app.listen(4000);
+  await app.listen(80);
 }
 bootstrap();
