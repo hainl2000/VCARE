@@ -49,9 +49,9 @@ export class AppointmentService {
       ...checkData
     } = data;
 
-    if (!dayjs(time_in_string).isAfter(dayjs().startOf('date'))) {
-      throw new BadRequestException('Thời điểm đặt lịch phải sau ngày hôm nay');
-    }
+    // if (!dayjs(time_in_string).isAfter(dayjs().startOf('date'))) {
+    //   throw new BadRequestException('Thời điểm đặt lịch phải sau ngày hôm nay');
+    // }
 
     const existed = await this.prisma.health_check_appointment.findFirst({
       where: { user_id: user.id, time_in_string },
