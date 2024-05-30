@@ -82,9 +82,16 @@ export class PatientHistoryQuery extends ListDto {
 }
 
 export class SearchAppointDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   search_value: string;
+  @IsOptional()
+  @IsString()
+  startFrom?: string;
+
+  @IsOptional()
+  @IsString()
+  endAt?: string;
 }
 
 export class UpdateAppointmentDto {
@@ -110,9 +117,9 @@ export class UpdateAppointmentDto {
   services: number[];
   fee?: number;
   @IsOptional()
-  re_examination?: string
+  re_examination?: string;
   @IsOptional()
-  periodi_examination?: string
+  periodi_examination?: string;
 }
 
 export class UpdateServiceResultDto {

@@ -247,7 +247,7 @@ export class AppointmentService {
           department: { select: { name: true } },
         },
         take: size,
-        orderBy: { id: 'desc' },
+        orderBy: { order: 'asc' },
       }),
       this.prisma.health_check_appointment.count({ where: whereOption }),
     ]);
@@ -583,7 +583,7 @@ export class AppointmentService {
 
   async searchAppointment(query: SearchAppointDto, doctor: doctors) {
     try {
-      const { search_value } = query;
+      const { search_value, endAt, startFrom } = query;
       const whereOption: Prisma.health_check_appointmentWhereInput = {
         services: { some: { service: { service_id: doctor.service_id } } },
       };
@@ -596,8 +596,14 @@ export class AppointmentService {
           { user: { social_insurance_number: search_value } },
         ];
       }
-      const result = await this.prisma.health_check_appointment.findFirst({
+      whereOption.time_in_string = dateFilterString(startFrom, endAt);
+      console.log(whereOption);
+
+      const results = await this.prisma.health_check_appointment.findMany({
         where: whereOption,
+        orderBy: {
+          time_in_string: 'desc',
+        },
         include: {
           services: {
             include: {
@@ -606,22 +612,24 @@ export class AppointmentService {
           },
         },
       });
-      if (!!result) {
-        const myServices = result.services.filter(
-          (s) => s.service.service_id === doctor.service_id,
-        );
-        return {
-          ...result,
-          services: myServices,
-          services_result: myServices.flatMap((item) => {
-            return item.result_image.map((img) => ({
-              label: item.service.name,
-              url: img,
-            }));
-          }),
-        };
+      if (!!results.length) {
+        return results.map((result) => {
+          const myServices = result.services.filter(
+            (s) => s.service.service_id === doctor.service_id,
+          );
+          return {
+            ...result,
+            services: myServices,
+            services_result: myServices.flatMap((item) => {
+              return item.result_image.map((img) => ({
+                label: item.service.name,
+                url: img,
+              }));
+            }),
+          };
+        });
       }
-      return null;
+      return [];
     } catch (error) {
       console.log(error);
       throw error;
